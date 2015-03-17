@@ -43,6 +43,7 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
 
 
    public EndpointConfigView() {
+
       DecoratorPanel contentDetailsDecorator = new DecoratorPanel();
       contentDetailsDecorator.setWidth("48em");
       initWidget(contentDetailsDecorator);
@@ -63,10 +64,12 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
    }
 
    public HasClickHandlers getInvokeButton() {
+
       return invokeButton;
    }
 
    public HasClickHandlers getPreviewButton() {
+
       return previewButton;
    }
 
@@ -81,6 +84,7 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
    }
 
    public void setData(ParamNode data) {
+
       processData(data.getChildren());
    }
 
@@ -128,8 +132,8 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
       widget.setVisible(false);
 
       // debug
-      if(widget instanceof TextBox) {
-         debugBox = (TextBox)widget;
+      if (widget instanceof TextBox) {
+         debugBox = (TextBox) widget;
       }
 
       Button addButton = new Button("add");
@@ -138,11 +142,12 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
       debugBox.setText("paramsTable RowCount: " + Integer.toString(fTable.getRowCount())
          + "  widget cnt: " + Integer.toString(baseVerticalPanel.getWidgetCount()));
 
-      addButton.addClickHandler(new AddParamerterizeRowClickHandler(this, paramWidgetTable,fTable));
+      addButton.addClickHandler(new AddParamerterizeRowClickHandler(this, paramWidgetTable, fTable));
       return fTable;
    }
 
    private HorizontalPanel getParamPanel(ParamNode pNode) {
+
       HorizontalPanel hPanel = new HorizontalPanel();
 
       hPanel.add(getLabel(pNode));
@@ -153,12 +158,14 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
    }
 
    private HorizontalPanel createNoParamPanel() {
+
       HorizontalPanel hPanel = new HorizontalPanel();
       hPanel.add(new Label("Method has no input parameters."));
       return hPanel;
    }
 
    private Widget getWidget(ParamNode pNode) {
+
       if ("java.lang.String".endsWith(pNode.getClassType())) {
          return new TextBox();
       } else if ("java.lang.Integer".equals(pNode.getClassType())) {
@@ -171,8 +178,9 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
 
 
    private Label getLabel(ParamNode pNode) {
+
       String typeLabel = "";
-      if ( pNode instanceof ParameterizedNode) {
+      if (pNode instanceof ParameterizedNode) {
          typeLabel = getBaseType(((ParameterizedNode) pNode).getRawType())
             + "<" + getBaseType(pNode.getClassType()) + ">:" + pNode.getName();
       } else {
@@ -187,12 +195,12 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
       return new Label(typeLabel);
    }
 
-   private String getBaseType (String src) {
+   private String getBaseType(String src) {
 
       int indx = src.lastIndexOf(".");
       String t = src;
-      if (indx > -1){
-         t = src.substring(indx+1);
+      if (indx > -1) {
+         t = src.substring(indx + 1);
       }
       return t;
    }
@@ -207,17 +215,20 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
 
       public AddParamerterizeRowClickHandler(EndpointConfigView endpointConfigView,
                                              LinkedHashMap<Widget, ParamNode> paramWidgetTable,
-                                          FlexTable fTable) {
+                                             FlexTable fTable) {
+
          this.endpointConfigView = endpointConfigView;
          this.paramWidgetTable = paramWidgetTable;
          this.fTable = fTable;
       }
 
       public void onClick(ClickEvent event) {
+
          insertRowAfter();
       }
 
-      private void insertRowAfter(){
+      private void insertRowAfter() {
+
          int lastRow = fTable.getRowCount();
          int next = fTable.insertRow(lastRow);
 
@@ -230,12 +241,12 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
 
          Widget widget = endpointConfigView.getWidget(pNode);
 
-          //- debugging only
-          //if (widget instanceof TextBox) {
-          //  TextBox tmpWidget = (TextBox)widget;
-          //  tmpWidget.setValue(Integer.toString(next) + " next: " + Integer.toString(next)
-          //     + "  RowCount: " + Integer.toString(fTable.getRowCount()));  //- debug
-          //}
+         //- debugging only
+         //if (widget instanceof TextBox) {
+         //  TextBox tmpWidget = (TextBox)widget;
+         //  tmpWidget.setValue(Integer.toString(next) + " next: " + Integer.toString(next)
+         //     + "  RowCount: " + Integer.toString(fTable.getRowCount()));  //- debug
+         //}
 
          fTable.setWidget(next, COL_INFIELD, widget);
 
@@ -246,7 +257,7 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
          fTable.setWidget(next, COL_REMOVEBUTTON, rmButton);
 
          rmButton.addClickHandler(new RemoveParamerterizeRowClickHandler(
-            paramWidgetTable,fTable));
+            paramWidgetTable, fTable));
       }
 
    }
@@ -260,18 +271,21 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
 
       public RemoveParamerterizeRowClickHandler(LinkedHashMap<Widget, ParamNode> paramWidgetTable,
                                                 FlexTable fTable) {
+
          this.paramWidgetTable = paramWidgetTable;
          this.fTable = fTable;
       }
 
       public void onClick(ClickEvent event) {
+
          int rowIndex = fTable.getCellForEvent(event).getRowIndex();
          removeRow(rowIndex);
          debugBox.setText("remove event rowIndex: " + Integer.toString(rowIndex)
             + "  table size: " + Integer.toString(fTable.getRowCount()));  // rls
       }
 
-      private void removeRow(int rowIndex){
+      private void removeRow(int rowIndex) {
+
          Widget fieldWidget = fTable.getWidget(COL_INFIELD, rowIndex);
          paramWidgetTable.remove(fieldWidget);
          fTable.removeRow(rowIndex);

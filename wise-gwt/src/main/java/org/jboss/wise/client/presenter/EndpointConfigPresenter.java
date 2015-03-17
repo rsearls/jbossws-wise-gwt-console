@@ -20,9 +20,13 @@ public class EndpointConfigPresenter implements Presenter {
 
    public interface Display {
       HasClickHandlers getInvokeButton();
+
       HasClickHandlers getPreviewButton();
+
       HasClickHandlers getCancelButton();
+
       Widget asWidget();
+
       void setData(ParamNode data);
    }
 
@@ -32,6 +36,7 @@ public class EndpointConfigPresenter implements Presenter {
    private final Display display;
 
    public EndpointConfigPresenter(MainServiceAsync rpcService, HandlerManager eventBus, Display display) {
+
       this.rpcService = rpcService;
       this.eventBus = eventBus;
       this.display = display;
@@ -39,6 +44,7 @@ public class EndpointConfigPresenter implements Presenter {
    }
 
    public EndpointConfigPresenter(MainServiceAsync rpcService, HandlerManager eventBus, Display display, String id) {
+
       this.rpcService = rpcService;
       this.eventBus = eventBus;
       this.display = display;
@@ -46,10 +52,12 @@ public class EndpointConfigPresenter implements Presenter {
 
       rpcService.getEndpointReflection(id, new AsyncCallback<ParamNode>() {
          public void onSuccess(ParamNode result) {
+
             EndpointConfigPresenter.this.display.setData(result);
          }
 
          public void onFailure(Throwable caught) {
+
             Window.alert("Error retrieving endpoint reflections");
          }
       });
@@ -57,26 +65,32 @@ public class EndpointConfigPresenter implements Presenter {
    }
 
    public void bind() {
+
       this.display.getInvokeButton().addClickHandler(new ClickHandler() {
          public void onClick(ClickEvent event) {
+            Window.alert("Not implemented");
             doInvoke();
+
          }
       });
 
       this.display.getPreviewButton().addClickHandler(new ClickHandler() {
          public void onClick(ClickEvent event) {
+            Window.alert("Not implemented");
             doPreview();
          }
       });
 
       this.display.getCancelButton().addClickHandler(new ClickHandler() {
          public void onClick(ClickEvent event) {
+
             eventBus.fireEvent(new CancelledEvent());
          }
       });
    }
 
    public void go(final HasWidgets container) {
+
       container.clear();
       container.add(display.asWidget());
    }
