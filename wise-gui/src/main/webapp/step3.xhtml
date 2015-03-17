@@ -1,0 +1,153 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:a4j="http://richfaces.org/a4j"
+      xmlns:c="http://java.sun.com/jsp/jstl/core"
+      xmlns:rich="http://richfaces.org/rich">
+      
+        <rich:panel header="Request">
+                <div>
+                    <i>#{clientConversationBean.currentOperationFullName}</i>
+                </div>
+                <a4j:outputPanel id="parInputPanel">
+                            <rich:tree id="rt" var="node" value="#{clientConversationBean.inputTree}" nodeType="#{node.kind}" binding="#{clientConversationBean.inTree}">
+				                <rich:treeNode type="simple">
+				                	<h:outputText value="#{node.type} : #{node.name} " />
+        					        <h:selectBooleanCheckbox id="n_cb" value="#{node.notNil}" disabled="#{node.notNillable}" >
+		        			           <f:ajax />
+					                </h:selectBooleanCheckbox>
+        					        <h:inputText value="#{node.value}" id="n" label="" rendered="#{node.type!='boolean' and node.type!='Boolean'}" columns="10"  >
+		        			           <f:ajax event="valueChange" render="n_cb" listener="#{clientConversationBean.onInputFocus(node)}" />
+				        	        </h:inputText>
+					                <h:selectOneMenu value="#{node.value}" rendered="#{node.type=='boolean' or node.type=='Boolean'}">
+        						        <f:selectItem itemValue="true" itemLabel="true" />
+        						        <f:selectItem itemValue="false" itemLabel="false" />
+                					</h:selectOneMenu>
+				        	        <a4j:commandLink action="#{clientConversationBean.removeChild(node)}" render="rt" rendered="#{node.removable}">Remove</a4j:commandLink>
+		        		        </rich:treeNode>
+				                <rich:treeNode type="group" expanded="#{node.expanded}">
+					                <h:outputText value="[#{node.type}]" styleClass="tipoCampo" />
+                					<h:selectBooleanCheckbox value="#{node.notNil}" disabled="true" />
+		                			<h:outputText value="&nbsp;" />
+		                			<a4j:commandLink name="Add" action="#{clientConversationBean.addChild(node)}" render="rt">Add</a4j:commandLink>
+                					<a4j:commandLink action="#{clientConversationBean.removeChild(node)}" render="rt" rendered="#{node.removable}">Remove</a4j:commandLink>
+        		        		</rich:treeNode>
+		        		        <rich:treeNode type="lazy">
+				                    <h:outputText value="#{node.type} ..." />
+		        		        	<h:outputText value="&nbsp;" />
+        		        			<a4j:commandLink name="Load" action="#{clientConversationBean.lazyLoadChild(node)}" render="rt" rendered="#{not node.resolved}">Load</a4j:commandLink>
+					                <a4j:commandLink action="#{clientConversationBean.removeChild(node)}" render="rt" rendered="#{node.removable}">Remove</a4j:commandLink>
+		                		</rich:treeNode>
+				                <rich:treeNode type="complex" expanded="#{node.expanded}">
+					                <h:outputText value="#{node.type} : #{node.name} " />
+        					        <h:selectBooleanCheckbox value="#{node.notNil}" disabled="#{node.notNillable}" >
+		        			           <f:ajax />
+				        	        </h:selectBooleanCheckbox>
+        				        	<h:outputText value="&nbsp;&nbsp;" />
+        					        <a4j:commandLink action="#{clientConversationBean.removeChild(node)}" render="rt" rendered="#{node.removable}">Remove</a4j:commandLink>
+				                </rich:treeNode>
+        				        <rich:treeNode type="Parameterized" expanded="#{node.expanded}">
+		        			        <h:outputText value="{#{node.namespace}} " />
+				        	        <h:selectBooleanCheckbox value="#{node.notNil}" disabled="true" />
+				                </rich:treeNode>
+        				        <rich:treeNode type="XMLGregorianCalendar">
+                					<h:outputText value="#{node.type} : #{node.name} " styleClass="tipoCampo" />
+		                			<h:selectBooleanCheckbox id="n2_cb" value="#{node.notNil}" disabled="#{node.notNillable}" >
+		        		        	   <f:ajax />
+        					        </h:selectBooleanCheckbox>
+		        		        	<rich:calendar id="n2" value="#{node.valueDate}" popup="true" showInput="true" enableManualInput="false" >
+				        		        <f:ajax event="change" render="n2_cb" listener="#{clientConversationBean.onInputFocus(node)}" />
+						            </rich:calendar>
+                					<a4j:commandLink action="#{clientConversationBean.removeChild(node)}" render="rt" rendered="#{node.removable}">Remove</a4j:commandLink>
+        		        		</rich:treeNode>
+		        		        <rich:treeNode type="Duration">
+        		        			<h:outputText value="#{node.type} : #{node.name} " styleClass="tipoCampo" />
+		        		        	<h:selectBooleanCheckbox id="n3_cb" value="#{node.notNil}" disabled="#{node.notNillable}" >
+        		        			   <f:ajax />
+		        			        </h:selectBooleanCheckbox>
+				                	<h:inputText id="n3" value="#{node.value}">
+				                	   <f:ajax event="valueChange" render="n3_cb" listener="#{clientConversationBean.onInputFocus(node)}" />
+        				        	</h:inputText>
+                					<h:outputText value="(MilliSeconds)" target="_blank" />
+		                			<h:outputText value="&nbsp;" />
+		        		        	<a4j:commandLink action="#{clientConversationBean.removeChild(node)}" render="rt" rendered="#{node.removable}">Remove</a4j:commandLink>
+		        		        </rich:treeNode>
+        		        		<rich:treeNode type="qname">
+		        		        	<h:outputText value="#{node.type} : #{node.name} " styleClass="tipoCampo" />
+        				        	<h:selectBooleanCheckbox id="n4_cb" value="#{node.notNil}" disabled="#{node.notNillable}" >
+		        		        	   <f:ajax />
+				        	        </h:selectBooleanCheckbox>
+		        		        	<h:inputText id="n4" value="#{node.nameSpace}">
+        		        			   <f:ajax event="valueChange" render="n4_cb" listener="#{clientConversationBean.onInputFocus(node)}" />
+		                			</h:inputText>
+				                	<h:outputText value=" : " />
+        				        	<h:inputText value="#{node.localPart}" />
+        		        			<h:outputText value="&nbsp;" />
+		                			<a4j:commandLink action="#{clientConversationBean.removeChild(node)}" render="rt" rendered="#{node.removable}">Remove</a4j:commandLink>
+        				        </rich:treeNode>
+                				<rich:treeNode type="Enumeration">
+		                			<h:outputText value="#{node.type} : #{node.name} " styleClass="tipoCampo" />
+				                	<h:selectBooleanCheckbox id="n5_cb" value="#{node.notNil}" disabled="#{node.notNillable}" >
+        				        	   <f:ajax />
+		        			        </h:selectBooleanCheckbox>
+        		        			<h:selectOneMenu id="n5" value="#{node.value}" onfocus="document.getElementById(this.id + '_cb').checked=true">
+		        		        		<f:selectItems value="#{node.validValue}" />
+        				        	</h:selectOneMenu>
+                					<h:outputText value="&nbsp;" />
+        		        			<a4j:commandLink action="#{clientConversationBean.removeChild(node)}" render="rt" rendered="#{node.removable}">Remove</a4j:commandLink>
+		                		</rich:treeNode>
+				                <rich:treeNode type="byteArray">
+				                	<h:outputText value="#{node.type} : #{node.name} " />
+        					        <h:selectBooleanCheckbox id="n6_cb" value="#{node.notNil}" disabled="#{node.notNillable}" >
+		        			           <f:ajax />
+				        	        </h:selectBooleanCheckbox>
+					                <h:inputText value="#{node.value}" id="n6" >
+        					           <f:ajax event="valueChange" render="n6_cb" listener="#{clientConversationBean.onInputFocus(node)}" />
+		        			        </h:inputText>
+				        	        <a4j:commandLink action="#{clientConversationBean.removeChild(node)}" render="rt" rendered="#{node.removable}">Remove</a4j:commandLink>
+		        		        </rich:treeNode>
+        		            </rich:tree>
+                </a4j:outputPanel>
+        		<br />
+                <rich:panel>
+        		    <h:panelGrid columns="2">
+        		        <h:outputLabel value="Override target address:" for="invUrlInput"/>
+                        <h:inputText id="invUrlInput" value="#{clientConversationBean.invocationUrl}" />
+                        <h:outputLabel value="User:" for="invUser"/>
+                        <h:inputText id="invUser" value="#{clientConversationBean.invocationUser}" />
+                        <h:outputLabel value="Password:" for="invPwd"/>
+                        <h:inputSecret id="invPwd" value="#{clientConversationBean.invocationPwd}" redisplay="true" />
+        		    </h:panelGrid>
+        		</rich:panel>
+                <rich:popupPanel id="popupPreview" modal="true" resizeable="true" onmaskclick="#{rich:component('popupPreview')}.hide()" minWidth="550" minHeight="450">
+                    <f:facet name="header">
+                        <h:outputText value="SOAP request message preview" />
+                    </f:facet>
+                    <f:facet name="controls">
+                        <h:outputLink value="#" onclick="#{rich:component('popupPreview')}.hide(); return false;">X</h:outputLink>
+                    </f:facet>
+                    <p>Below is a preview of the SOAP message that will be generated upon invocation. The actual message going on the wire might be different
+                       depending on the selected service policy (security, addressing, reliable-messaging, etc.), if any.</p>
+                    <div align="center"><h:inputTextarea value="#{clientConversationBean.requestPreview}" cols="80" rows="20" readonly="true" styleClass="preformatted"/></div>
+                </rich:popupPanel>
+        
+        </rich:panel>
+        <rich:panel header="Error" rendered="#{not empty clientConversationBean.error}">
+            <h:outputText value="#{clientConversationBean.error}" />
+        </rich:panel>
+        <div class="navPanel" style="width: 100%;">
+            <a4j:commandButton value="&lt;&lt; Back" style="float:left">
+                <rich:toggleControl targetItem="@prev" event="click" />
+            </a4j:commandButton>
+            <a4j:commandButton value="Invoke &gt;&gt;" style="float:right" rendered="#{empty clientConversationBean.error}">
+                <rich:toggleControl targetItem="@next" event="click" />
+            </a4j:commandButton>
+            <a4j:commandButton value="Preview message" render="popupPreview" rendered="#{empty clientConversationBean.error}" action="#{clientConversationBean.generateRequestPreview}" style="float:right"
+                id="previewButton" oncomplete="#{rich:component('popupPreview')}.show();" status="waitStatus">
+            </a4j:commandButton>
+        </div>
+            
+</ui:composition>
