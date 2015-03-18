@@ -63,7 +63,7 @@
 
       <dependency>
           <groupId>org.jboss.wise</groupId>
-          <artifactId>wise-core-cxf-revised</artifactId>
+          <artifactId>wise-core-cxf</artifactId>
           <version>${version.wise.core}</version>
           <exclusions>
               <exclusion>
