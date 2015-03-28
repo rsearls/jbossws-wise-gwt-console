@@ -133,9 +133,6 @@ public class WsdlView extends Composite implements WsdlPresenter.Display {
       HTMLTable.Cell cell = contactsTable.getCellForEvent(event);
 
       if (cell != null) {
-         // Suppress clicks if the user is actually selecting the
-         //  check box
-         //
          if (cell.getCellIndex() > 0) {
             selectedRow = cell.getRowIndex();
          }

@@ -137,7 +137,7 @@
       <dependency>
           <groupId>org.jboss.wise.gui</groupId>
           <artifactId>wise-gui</artifactId>
-          <version>2.0-SNAPSHOT</version>
+          <version>2.1-SNAPSHOT</version>
       </dependency>
 
       <dependency>

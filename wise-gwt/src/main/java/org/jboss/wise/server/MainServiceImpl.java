@@ -2,16 +2,18 @@ package org.jboss.wise.server;
 
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
-import org.jboss.wise.client.MainService;
-import org.jboss.wise.gui.ClientConversationBean;
-import org.jboss.wise.gui.ParamNode;
-import org.jboss.wise.gui.Service;
-import org.jboss.wise.shared.WsdlAddress;
-import org.jboss.wise.shared.WsdlInfo;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import org.jboss.wise.client.MainService;
+import org.jboss.wise.gui.ClientConversationBean;
+import org.jboss.wise.gui.Service;
+import org.jboss.wise.gui.tree.element.GroupTreeElement;
+import org.jboss.wise.gui.tree.element.MessageInvocationResult;
+import org.jboss.wise.gui.tree.element.SimpleTreeElement;
+import org.jboss.wise.gui.tree.element.TreeElement;
+import org.jboss.wise.shared.WsdlAddress;
+import org.jboss.wise.shared.WsdlInfo;
 
 /**
  * User: rsearls
@@ -64,18 +66,78 @@ public class MainServiceImpl extends RemoteServiceServlet implements
          clientConversationBean.debugOprParams();  // debug only
          endpointList.addAll(serviceList);
       } else {
-         //endpointList.add("getEndpoints: idWSDL was null");
          Window.alert("URL information not specified");
       }
       return endpointList;
    }
 
-   public ParamNode getEndpointReflection(String id) {
+   public TreeElement getEndpointReflection(String id) {
 
       if (id != null) {
-         return clientConversationBean.getParamNode(id);
+         clientConversationBean.setCurrentOperation(id);
+         return clientConversationBean.myParseOperationParameters(id);
       }
       return null;
    }
 
+   public String getRequestPreview(TreeElement rootTreeElement) {
+
+      return clientConversationBean.myGenerateRequestPreview(rootTreeElement);
+   }
+
+   public MessageInvocationResult getPerformInvocationOutputTree(TreeElement rootTreeElement) {
+
+      return clientConversationBean.myPerformInvocationOutputTree(rootTreeElement);
+   }
+
+   private String dumpTree(TreeElement root) {
+
+      StringBuilder sb = new StringBuilder();
+
+      if (root == null) {
+         sb.append("root is NULL \n");
+      } else {
+         sb.append("--- \n");
+         sb.append("root: arg name: " + root.getName()
+            + "  classType: " + root.getClassType()
+            + "  kind: " + root.getKind() + "\n");
+
+         for (TreeElement te : root.getChildren()) {
+
+            if (TreeElement.SIMPLE.equals(te.getKind())) {
+               /**
+                sb.append("child: arg name: " + te.getName()
+                + "  classType: " + te.getClassType()
+                + "  kind: " + te.getKind() + "\n");
+                **/
+               sb.append(te.getClassType() + " : " + te.getName() + " = "
+                  + ((SimpleTreeElement)te).getValue() + "\n");
+
+            } else if (TreeElement.GROUP.equals(te.getKind())) {
+               sb.append("child: arg name: " + te.getName()
+                  + "  classType: " + te.getClassType()
+                  + "  rawType: " + ((GroupTreeElement) te).getProtoType().getClassType()
+                  + "  kind: " + te.getKind() + "\n");
+
+            }
+            /***
+             else if (TreeElement.ENUMERATION.equals(te.getKind())) {
+             sb.append("Enum child: arg name: " + te.getName()
+             + "  classType: " + te.getClassType()
+             + "  kind: " + te.getKind() + "\n");
+
+             for(String v : ((EnumerationTreeElement)te).getEnumValues()) {
+             sb.append("Enum child: value" + v + "\n");
+             }
+
+             } else {
+             sb.append("UNKNOW Kind: child: arg name: " + te.getName()
+             + "  classTypeAsString: " + te.getClassType()
+             + "  kind: " + te.getKind() + "\n");
+             }
+             ***/
+         }
+      }
+      return sb.toString();
+   }
 }

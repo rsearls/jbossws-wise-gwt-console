@@ -4,13 +4,14 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.HasClickHandlers;
 import com.google.gwt.event.shared.HandlerManager;
-import org.jboss.wise.client.MainServiceAsync;
-import org.jboss.wise.client.event.CancelledEvent;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.HasWidgets;
 import com.google.gwt.user.client.ui.Widget;
-import org.jboss.wise.gui.ParamNode;
+import org.jboss.wise.client.MainServiceAsync;
+import org.jboss.wise.client.event.CancelledEvent;
+import org.jboss.wise.client.event.InvocationEvent;
+import org.jboss.wise.gui.tree.element.TreeElement;
 
 /**
  * User: rsearls
@@ -27,7 +28,9 @@ public class EndpointConfigPresenter implements Presenter {
 
       Widget asWidget();
 
-      void setData(ParamNode data);
+      void setData(TreeElement data);
+
+      TreeElement getParamNodeConfig();
    }
 
 
@@ -50,8 +53,8 @@ public class EndpointConfigPresenter implements Presenter {
       this.display = display;
       bind();
 
-      rpcService.getEndpointReflection(id, new AsyncCallback<ParamNode>() {
-         public void onSuccess(ParamNode result) {
+      rpcService.getEndpointReflection(id, new AsyncCallback<TreeElement>() {
+         public void onSuccess(TreeElement result) {
 
             EndpointConfigPresenter.this.display.setData(result);
          }
@@ -62,21 +65,21 @@ public class EndpointConfigPresenter implements Presenter {
          }
       });
 
+
    }
 
    public void bind() {
 
       this.display.getInvokeButton().addClickHandler(new ClickHandler() {
          public void onClick(ClickEvent event) {
-            Window.alert("Not implemented");
-            doInvoke();
 
+            doInvoke();
          }
       });
 
       this.display.getPreviewButton().addClickHandler(new ClickHandler() {
          public void onClick(ClickEvent event) {
-            Window.alert("Not implemented");
+
             doPreview();
          }
       });
@@ -96,20 +99,36 @@ public class EndpointConfigPresenter implements Presenter {
    }
 
    private void doInvoke() {
-      /***
-       rpcService.updateContact(contact, new AsyncCallback<Contact>() {
-       public void onSuccess(Contact result) {
-       eventBus.fireEvent(new ContactUpdatedEvent(result));
-       }
 
-       public void onFailure(Throwable caught) {
-       Window.alert("Error updating contact");
-       }
-       });
-       ***/
+      TreeElement pNode = EndpointConfigPresenter.this.display.getParamNodeConfig();
+      if (pNode == null) {
+         Window.alert("getParamNodeConfig returned NULL");
+      } else {
+         eventBus.fireEvent(new InvocationEvent(pNode));
+      }
    }
 
    private void doPreview() {
 
+      TreeElement pNode = EndpointConfigPresenter.this.display.getParamNodeConfig();
+      if (pNode == null) {
+         Window.alert("getParamNodeConfig returned NULL");
+      } else {
+         rpcService.getRequestPreview(pNode, new AsyncCallback<String>() {
+            public void onSuccess(String result) {
+
+               if (result == null) {
+                  Window.alert("getRequestPreview returned a NULL string ");
+               } else {
+                  Window.alert("start:" + result + ":end");
+               }
+            }
+
+            public void onFailure(Throwable caught) {
+
+               Window.alert("Error processing getRequestPreview");
+            }
+         });
+      }
    }
 }

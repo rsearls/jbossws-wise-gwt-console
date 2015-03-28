@@ -14,7 +14,7 @@
 
    <groupId>org.jboss.wise.gui</groupId>
    <artifactId>wise-gui</artifactId>
-   <version>2.0-SNAPSHOT</version>
+   <version>2.1-SNAPSHOT</version>
    <packaging>jar</packaging>
    <name>JBoss Wise GUI</name>
    <description>A GUI for JBoss Wise Core</description>
@@ -272,8 +272,12 @@
               <include>org/jboss/wise/gui/Operation.java</include>
               <include>org/jboss/wise/gui/Port.java</include>
               <include>org/jboss/wise/gui/Service.java</include>
-              <include>org/jboss/wise/gui/ParamNode.java</include>
-              <include>org/jboss/wise/gui/ParameterizedNode.java</include>
+              <include>org/jboss/wise/gui/tree/element/TreeElement.java</include>
+              <include>org/jboss/wise/gui/tree/element/SimpleTreeElement.java</include>
+              <include>org/jboss/wise/gui/tree/element/GroupTreeElement.java</include>
+              <include>org/jboss/wise/gui/tree/element/CollectionTreeElement.java</include>
+              <include>org/jboss/wise/gui/tree/element/EnumerationTreeElement.java</include>
+              <include>org/jboss/wise/gui/tree/element/MessageInvocationResult.java</include>
            </includes>
         </configuration>
       </plugin>

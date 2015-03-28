@@ -3,98 +3,108 @@ package org.jboss.wise.gui.model;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.jboss.wise.gui.model.TreeNode;
-//import com.google.gwt.user.client.ui.TreeItem;
-
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+//import com.google.gwt.user.client.ui.TreeItem;
+
 /**
  * Copied from richfaces
- *
+ * <p/>
  * User: rsearls
  * Date: 3/2/15
  */
 public class TreeNodeImpl implements TreeNode {
-    private List<Object> keysList = null;
-    private Map<Object, TreeNode> children = null;
-    private boolean leaf;
-    //private TreeItem treeItem;
+   private static final long serialVersionUID = 1L;
 
-    public TreeNodeImpl() {
-        this(false);
-    }
+   private List<Object> keysList = null;
+   private Map<Object, TreeNode> children = null;
+   private boolean leaf;
+   //private TreeItem treeItem;
 
-    public TreeNodeImpl(boolean leaf) {
-        super();
+   public TreeNodeImpl() {
 
-        this.leaf = leaf;
+      this(false);
+   }
 
-        if (!leaf) {
-            keysList = Lists.newArrayList();
-            children = Maps.newHashMap();
-        }
-    }
+   public TreeNodeImpl(boolean leaf) {
 
-    public void addChild(Object key, TreeNode child) {
-        if (isLeaf()) {
-            throw new IllegalStateException("Cannot add children to leaf");
-        }
+      super();
 
-        keysList.add(key);
-        children.put(key, child);
-        //treeItem = new TreeItem();
-    }
+      this.leaf = leaf;
 
-    public void insertChild(int idx, Object key, TreeNode child) {
-        if (isLeaf()) {
-            throw new IllegalStateException("Cannot add children to leaf");
-        }
+      if (!leaf) {
+         keysList = Lists.newArrayList();
+         children = Maps.newHashMap();
+      }
+   }
 
-        keysList.add(idx, key);
-        children.put(key, child);
-    }
+   public void addChild(Object key, TreeNode child) {
 
-    public void removeChild(Object key) {
-        if (isLeaf()) {
-            return;
-        }
+      if (isLeaf()) {
+         throw new IllegalStateException("Cannot add children to leaf");
+      }
 
-        children.remove(key);
-        keysList.remove(key);
-    }
+      keysList.add(key);
+      children.put(key, child);
+      //treeItem = new TreeItem();
+   }
 
-    public TreeNode getChild(Object key) {
-        if (isLeaf()) {
-            return null;
-        }
+   public void insertChild(int idx, Object key, TreeNode child) {
 
-        return children.get(key);
-    }
+      if (isLeaf()) {
+         throw new IllegalStateException("Cannot add children to leaf");
+      }
 
-    public Iterator<Object> getChildrenKeysIterator() {
-        if (isLeaf()) {
-            return Iterators.emptyIterator();
-        }
+      keysList.add(idx, key);
+      children.put(key, child);
+   }
 
-        return Iterators.unmodifiableIterator(keysList.iterator());
-    }
+   public void removeChild(Object key) {
 
-    public int indexOf(Object key) {
-        if (isLeaf()) {
-            return -1;
-        }
+      if (isLeaf()) {
+         return;
+      }
 
-        return keysList.indexOf(key);
-    }
+      children.remove(key);
+      keysList.remove(key);
+   }
 
-    public boolean isLeaf() {
-        return leaf;
-    }
+   public TreeNode getChild(Object key) {
+
+      if (isLeaf()) {
+         return null;
+      }
+
+      return children.get(key);
+   }
+
+   public Iterator<Object> getChildrenKeysIterator() {
+
+      if (isLeaf()) {
+         return Iterators.emptyIterator();
+      }
+
+      return Iterators.unmodifiableIterator(keysList.iterator());
+   }
+
+   public int indexOf(Object key) {
+
+      if (isLeaf()) {
+         return -1;
+      }
+
+      return keysList.indexOf(key);
+   }
+
+   public boolean isLeaf() {
+
+      return leaf;
+   }
    /**
     public TreeItem getTreeItem(){
-        return treeItem;
+    return treeItem;
     }
     **/
 }

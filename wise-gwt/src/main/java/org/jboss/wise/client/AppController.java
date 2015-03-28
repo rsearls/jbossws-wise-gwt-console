@@ -8,12 +8,17 @@ import org.jboss.wise.client.event.BackEventHandler;
 import org.jboss.wise.client.event.CancelledEvent;
 import org.jboss.wise.client.event.CancelledEventHandler;
 import org.jboss.wise.client.event.EndpointConfigEvent;
+import org.jboss.wise.client.event.InvocationEvent;
+import org.jboss.wise.client.event.InvocationEventHandler;
 import org.jboss.wise.client.event.SendWsdlEventHandler;
 import org.jboss.wise.client.presenter.EndpointsPresenter;
+import org.jboss.wise.client.presenter.InvocationPresenter;
 import org.jboss.wise.client.presenter.Presenter;
 import org.jboss.wise.client.presenter.WsdlPresenter;
 import org.jboss.wise.client.view.EndpointConfigView;
 import org.jboss.wise.client.view.EndpointsView;
+import org.jboss.wise.client.view.InvocationView;
+import org.jboss.wise.gui.tree.element.TreeElement;
 import org.jboss.wise.shared.WsdlInfo;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.HasWidgets;
@@ -38,7 +43,6 @@ public class AppController implements Presenter, ValueChangeHandler<String> {
 
       History.addValueChangeHandler(this);
 
-      //- page1 send event.
       eventBus.addHandler(SendWsdlEvent.TYPE,
          new SendWsdlEventHandler() {
             public void onSendWsdl(SendWsdlEvent event) {
@@ -71,6 +75,13 @@ public class AppController implements Presenter, ValueChangeHandler<String> {
             }
          });
 
+      eventBus.addHandler(InvocationEvent.TYPE,
+         new InvocationEventHandler() {
+            public void onInvocation(InvocationEvent event) {
+
+               doInvocation(event.getId());
+            }
+         });
    }
 
    private void doSendWsdl(WsdlInfo wsdlInfo) {
@@ -84,6 +95,12 @@ public class AppController implements Presenter, ValueChangeHandler<String> {
 
       History.newItem("config", false);
       Presenter presenter = new EndpointConfigPresenter(rpcService, eventBus, new EndpointConfigView(), id);
+      presenter.go(container);
+   }
+
+   private void doInvocation (TreeElement treeElement) {
+      History.newItem("invoke", false);
+      Presenter presenter = new InvocationPresenter(rpcService, eventBus, new InvocationView(), treeElement);
       presenter.go(container);
    }
 
@@ -122,6 +139,8 @@ public class AppController implements Presenter, ValueChangeHandler<String> {
             presenter = new EndpointsPresenter(rpcService, eventBus, new EndpointsView());
          } else if (token.equals("config")) {
             presenter = new EndpointConfigPresenter(rpcService, eventBus, new EndpointConfigView());
+         } else if (token.equals("invoke")) {
+            presenter = new InvocationPresenter(rpcService, eventBus, new InvocationView());
          }
 
          if (presenter != null) {

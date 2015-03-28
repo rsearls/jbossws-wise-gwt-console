@@ -85,10 +85,6 @@ public class WsdlPresenter implements Presenter {
 
    public void sortAddressDetails() {
 
-      // Yes, we could use a more optimized method of sorting, but the
-      //  point is to create a test case that helps illustrate the higher
-      //  level concepts used when creating MVP-based applications.
-      //
       for (int i = 0; i < wsdlAddress.size(); ++i) {
          for (int j = 0; j < wsdlAddress.size() - 1; ++j) {
             if (wsdlAddress.get(j).getDisplayName().compareToIgnoreCase(wsdlAddress.get(j + 1).getDisplayName()) >= 0) {

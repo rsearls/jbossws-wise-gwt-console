@@ -3,46 +3,41 @@ package org.jboss.wise.client.presenter;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.HasClickHandlers;
-import com.google.gwt.event.logical.shared.SelectionEvent;
-import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.HandlerManager;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.HasWidgets;
 import com.google.gwt.user.client.ui.Tree;
-import com.google.gwt.user.client.ui.TreeItem;
 import com.google.gwt.user.client.ui.Widget;
-import java.util.List;
 import org.jboss.wise.client.MainServiceAsync;
 import org.jboss.wise.client.event.BackEvent;
-import org.jboss.wise.client.event.EndpointConfigEvent;
-import org.jboss.wise.gui.Service;
-import org.jboss.wise.shared.WsdlInfo;
-
-//import com.google.gwt.sample.contacts.shared.Contact;
+import org.jboss.wise.gui.tree.element.MessageInvocationResult;
+import org.jboss.wise.gui.tree.element.TreeElement;
 
 /**
  * User: rsearls
- * Date: 3/6/15
+ * Date: 3/26/15
  */
-public class EndpointsPresenter implements Presenter {
+public class InvocationPresenter implements Presenter {
    public interface Display {
       HasClickHandlers getBackButton();
 
-      Tree getData();
+      HasClickHandlers getViewMessageButton();
 
-      String getId(TreeItem tItem);
+      Tree getData();
 
       Widget asWidget();
 
-      void setData(List<Service> data);
+      String getResponseMessage();
+
+      void setData(MessageInvocationResult result);
    }
 
    private final MainServiceAsync rpcService;
    private final HandlerManager eventBus;
    private final Display display;
 
-   public EndpointsPresenter(MainServiceAsync rpcService, HandlerManager eventBus, Display display) {
+   public InvocationPresenter(MainServiceAsync rpcService, HandlerManager eventBus, Display display) {
 
       this.rpcService = rpcService;
       this.eventBus = eventBus;
@@ -50,22 +45,22 @@ public class EndpointsPresenter implements Presenter {
       bind();
    }
 
-   public EndpointsPresenter(MainServiceAsync rpcService, HandlerManager eventBus, Display display, WsdlInfo wsdlInfo) {
+   public InvocationPresenter(MainServiceAsync rpcService, HandlerManager eventBus, Display display, TreeElement treeElement) {
 
       this.rpcService = rpcService;
       this.eventBus = eventBus;
       this.display = display;
       bind();
 
-      rpcService.getEndpoints(wsdlInfo, new AsyncCallback<List<Service>>() {
-         public void onSuccess(List<Service> result) {
+      rpcService.getPerformInvocationOutputTree(treeElement, new AsyncCallback<MessageInvocationResult>() {
+         public void onSuccess(MessageInvocationResult result) {
 
-            EndpointsPresenter.this.display.setData(result);
+            InvocationPresenter.this.display.setData(result);
          }
 
          public void onFailure(Throwable caught) {
 
-            Window.alert("Error retrieving endpoints");
+            Window.alert("Error PerformInvocationOutputTree");
          }
       });
    }
@@ -79,16 +74,12 @@ public class EndpointsPresenter implements Presenter {
          }
       });
 
-      this.display.getData().addSelectionHandler(new SelectionHandler<TreeItem>() {
-         public void onSelection(SelectionEvent<TreeItem> event) {
-
-            TreeItem tItem = event.getSelectedItem();
-            String id = display.getId(tItem);
-            if (id != null) {
-               eventBus.fireEvent(new EndpointConfigEvent(id));
-            }
+      this.display.getViewMessageButton().addClickHandler(new ClickHandler() {
+         public void onClick(ClickEvent event) {
+            Window.alert(display.getResponseMessage());
          }
       });
+
    }
 
    public void go(final HasWidgets container) {

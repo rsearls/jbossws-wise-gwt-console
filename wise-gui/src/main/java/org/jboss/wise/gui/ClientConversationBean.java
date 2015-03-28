@@ -19,16 +19,12 @@ package org.jboss.wise.gui;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.io.Serializable;
+import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.Conversation;
-import javax.enterprise.context.ConversationScoped;
-import javax.inject.Inject;
-import javax.inject.Named;
-
-//import sun.util.logging.resources.logging.Logger;
 import org.jboss.logging.Logger;
 import org.jboss.wise.core.client.InvocationResult;
 import org.jboss.wise.core.client.WSDynamicClient;
@@ -38,12 +34,23 @@ import org.jboss.wise.core.client.builder.WSDynamicClientBuilder;
 import org.jboss.wise.core.client.impl.reflection.builder.ReflectionBasedWSDynamicClientBuilder;
 import org.jboss.wise.core.exception.InvocationException;
 import org.jboss.wise.core.utils.JBossLoggingOutputStream;
+import org.jboss.wise.gui.model.TreeNodeImpl;
+import org.jboss.wise.gui.tree.element.CollectionTreeElement;
+import org.jboss.wise.gui.tree.element.EnumerationTreeElement;
+import org.jboss.wise.gui.tree.element.GroupTreeElement;
+import org.jboss.wise.gui.tree.element.MessageInvocationResult;
+import org.jboss.wise.gui.tree.element.SimpleTreeElement;
+import org.jboss.wise.gui.tree.element.TreeElement;
+import org.jboss.wise.gui.tree.element.TreeElementFactory;
+import org.jboss.wise.gui.treeElement.EnumerationWiseTreeElement;
 import org.jboss.wise.gui.treeElement.GroupWiseTreeElement;
 import org.jboss.wise.gui.treeElement.LazyLoadWiseTreeElement;
+import org.jboss.wise.gui.treeElement.SimpleWiseTreeElement;
 import org.jboss.wise.gui.treeElement.WiseTreeElement;
 import org.richfaces.component.UITree;
 import org.richfaces.event.ItemChangeEvent;
-import org.jboss.wise.gui.model.TreeNodeImpl;
+
+//import sun.util.logging.resources.logging.Logger;
 
 //@Named
 //@ConversationScoped
@@ -75,6 +82,8 @@ public class ClientConversationBean implements Serializable {
    private String requestPreview;
    private String responseMessage;
    private String requestActiveTab;
+   private Map<String, WiseTreeElement> treeElementMap =
+      new HashMap<String, WiseTreeElement>();
 
    //@PostConstruct
    public void init() {
@@ -84,12 +93,13 @@ public class ClientConversationBean implements Serializable {
    }
 
    public void readWsdl() {
+
       cleanup();
       //restart conversation
       //conversation.end();
       //conversation.begin();
       try {
-          System.out.println("## wsdlUrl: " + getWsdlUrl());
+         System.out.println("## wsdlUrl: " + getWsdlUrl());
          WSDynamicClientBuilder builder = new ReflectionBasedWSDynamicClientBuilder().verbose(true).messageStream(ps)
             .keepSource(true).excludeNonSOAPPorts(true).maxThreadPoolSize(1);
          builder.userName(wsdlUser);
@@ -101,9 +111,10 @@ public class ClientConversationBean implements Serializable {
             new CleanupTask.CleanupCallback<WSDynamicClient>() {
                @Override
                public void cleanup(WSDynamicClient data) {
+
                   data.close();
                }
-         });
+            });
       } catch (Exception e) {
          error = "Could not read WSDL from specified URL. Please check credentials and see logs for further information.";
          logException(e);
@@ -121,26 +132,96 @@ public class ClientConversationBean implements Serializable {
 
    //- rls start
    public void debugOprParams() {
+
       List<String> rlsOperList = ClientHelper.getOperationList(services);
       for (String cOper : rlsOperList) {
          try {
-               ClientHelper.convertOperationParametersToGui(ClientHelper.getWSMethod(cOper, client), client);
+            ClientHelper.convertOperationParametersToGui(ClientHelper.getWSMethod(cOper, client), client);
          } catch (Exception e) {
             e.printStackTrace();
          }
       }
    }
 
-   public ParamNode getParamNode(String curOperation) {
+   public TreeElement myParseOperationParameters(String curOperation) {
+
       try {
-         return ClientHelper.getParamNode(ClientHelper.getWSMethod(curOperation, client), client);
+         currentOperationFullName = ClientHelper.getOperationFullName(currentOperation, services);
+         inputTree = ClientHelper.convertOperationParametersToGui(ClientHelper.getWSMethod(curOperation, client), client);
       } catch (Exception e) {
          e.printStackTrace();
       }
-      return null;
+
+      return generateTreeElementHierarchy((TreeNodeImpl)inputTree);
    }
-   //- rls end
+
+   //------ rls start
+   private TreeElement generateTreeElementHierarchy(TreeNodeImpl tNode) {
+
+      SimpleTreeElement treeElement = new SimpleTreeElement();
+      List<TreeElement> children = treeElement.getChildren();
+
+      Iterator<Object> keyIt = tNode.getChildrenKeysIterator();
+      while (keyIt.hasNext()) {
+         WiseTreeElement child = (WiseTreeElement) tNode.getChild(keyIt.next());
+         TreeElement te = genTreeElement(child);
+         children.add(te);
+      }
+
+      return treeElement;
+   }
+
+   private TreeElement genTreeElement(WiseTreeElement wte) {
+
+      TreeElement treeElement = TreeElementFactory.create(wte);
+
+      if (treeElement instanceof GroupTreeElement) {
+         GroupTreeElement gTreeElement = (GroupTreeElement)treeElement;
+         WiseTreeElement protoType =  ((GroupWiseTreeElement) wte).getPrototype();
+
+         TreeElement tElement = genTreeElement(protoType);
+         /**
+         //- tmp work around;
+         CollectionTreeElement cTree = new CollectionTreeElement();
+         cTree.setName(tElement.getName());
+         cTree.setKind(tElement.getKind());
+         cTree.setClassType(tElement.getClassType());
+         gTreeElement.setProtoType(cTree);
+         **/
+         gTreeElement.setProtoType(tElement);
+
+         String rType = gTreeElement.getCleanClassName(
+            ((ParameterizedType)wte.getClassType()).getRawType().toString());
+         gTreeElement.setClassType(rType);
+
+      } else if (treeElement instanceof EnumerationTreeElement) {
+         EnumerationTreeElement eTreeElement = (EnumerationTreeElement)treeElement;
+         Map<String, String> eValuesMap = ((EnumerationWiseTreeElement)wte).getValidValue();
+         if (eValuesMap != null) {
+            eTreeElement.getEnumValues().addAll(eValuesMap.keySet());
+         }
+         eTreeElement.setValue(((SimpleWiseTreeElement) wte).getValue());
+         eTreeElement.setClassType(treeElement.getCleanClassName(wte.getClassType().toString()));
+
+      } else {
+         ((SimpleTreeElement)treeElement).setValue(((SimpleWiseTreeElement) wte).getValue());
+         treeElement.setClassType(treeElement.getCleanClassName(wte.getClassType().toString()));
+
+      }
+
+      treeElement.setName(wte.getName());
+      treeElement.setKind(wte.getKind());
+      treeElement.setId(Integer.toString(((Object)wte).hashCode()));
+      treeElementMap.put(treeElement.getId(), wte);
+
+
+
+      return treeElement;
+   }
+   //------ rls end
+
    public void parseOperationParameters() {
+
       outputTree = null;
       responseMessage = null;
       error = null;
@@ -153,7 +234,142 @@ public class ClientConversationBean implements Serializable {
       }
    }
 
+   //-------- rls start
+   public MessageInvocationResult myPerformInvocationOutputTree(TreeElement root) {
+
+      transferInputValues(root);
+      performInvocation();
+      TreeElement treeE = generateOutputTreeElementHierarchy(outputTree);
+      dumpOutputTree();
+
+      MessageInvocationResult invResult = new MessageInvocationResult();
+      invResult.setOperationFullName(getCurrentOperationFullName());
+      invResult.setResponseMessage(responseMessage);
+      invResult.setTreeElement(treeE);
+      return invResult;
+   }
+
+
+   //------ rls start
+   private TreeElement generateOutputTreeElementHierarchy(TreeNodeImpl tNode) {
+
+      SimpleTreeElement treeElement = new SimpleTreeElement();
+      List<TreeElement> children = treeElement.getChildren();
+
+      Iterator<Object> keyIt = tNode.getChildrenKeysIterator();
+      while (keyIt.hasNext()) {
+         WiseTreeElement child = (WiseTreeElement) tNode.getChild(keyIt.next());
+         TreeElement te = genOutputTreeElement(child);
+         children.add(te);
+      }
+
+      return treeElement;
+   }
+
+   private TreeElement genOutputTreeElement(WiseTreeElement wte) {
+
+      TreeElement treeElement = TreeElementFactory.create(wte);
+
+      if (treeElement instanceof GroupTreeElement) {
+         GroupTreeElement gTreeElement = (GroupTreeElement)treeElement;
+         WiseTreeElement protoType =  ((GroupWiseTreeElement) wte).getPrototype();
+
+         TreeElement pElement = genOutputTreeElement(protoType);
+         gTreeElement.setProtoType(pElement);
+
+         String rType = gTreeElement.getCleanClassName(
+            ((ParameterizedType)wte.getClassType()).getRawType().toString());
+         gTreeElement.setClassType(rType);
+
+          //------ isOutputMessageProcessing  start
+         GroupWiseTreeElement gChild = (GroupWiseTreeElement)wte;
+         Iterator<Object> childKeyIt = gChild.getChildrenKeysIterator();
+         while (childKeyIt.hasNext()) {
+            Object c = gChild.getChild(childKeyIt.next());
+            if (c instanceof SimpleWiseTreeElement) {
+               SimpleWiseTreeElement simpleChild = (SimpleWiseTreeElement)c;
+               SimpleTreeElement ste = new SimpleTreeElement();
+               ste.setValue(simpleChild.getValue());
+               gTreeElement.addValue(ste);
+               /***
+               System.out.println("outputTree Group child name: " + simpleChild.getName()
+                  + "  value: " + simpleChild.getValue());
+
+               sb.append(simpleChild.getType() + " : " + simpleChild.getName() + " = "
+                  + simpleChild.getValue() + "\n");
+               ****/
+            }
+         }
+         //------ isOutputMessageProcessing  start
+      } else if (treeElement instanceof EnumerationTreeElement) {
+         EnumerationTreeElement eTreeElement = (EnumerationTreeElement)treeElement;
+         Map<String, String> eValuesMap = ((EnumerationWiseTreeElement)wte).getValidValue();
+         if (eValuesMap != null) {
+            eTreeElement.getEnumValues().addAll(eValuesMap.keySet());
+         }
+         eTreeElement.setValue(((SimpleWiseTreeElement) wte).getValue());
+         eTreeElement.setClassType(treeElement.getCleanClassName(wte.getClassType().toString()));
+
+      } else {
+         ((SimpleTreeElement)treeElement).setValue(((SimpleWiseTreeElement) wte).getValue());
+         treeElement.setClassType(treeElement.getCleanClassName(wte.getClassType().toString()));
+
+      }
+
+      treeElement.setName(wte.getName());
+      treeElement.setKind(wte.getKind());
+      treeElement.setId(Integer.toString(((Object)wte).hashCode()));
+      treeElementMap.put(treeElement.getId(), wte);
+
+
+
+      return treeElement;
+   }
+   //------ rls end
+
+   private String dumpOutputTree() {
+      StringBuilder sb = new StringBuilder();
+
+      if (outputTree != null) {
+
+         Iterator<Object> keyIt = outputTree.getChildrenKeysIterator();
+         while (keyIt.hasNext()) {
+            WiseTreeElement child = (WiseTreeElement) outputTree.getChild(keyIt.next());
+            sb.append(getCurrentOperationFullName() + "\n");
+
+            if (WiseTreeElement.GROUP.equals(child.getKind())) {
+               GroupWiseTreeElement gChild = (GroupWiseTreeElement)child;
+               sb.append(child.getType() + "[" + gChild.getSize() + "]"  + "\n");
+               // #{node.type}[#{node.size}]
+
+               Iterator<Object> childKeyIt = gChild.getChildrenKeysIterator();
+               while (childKeyIt.hasNext()) {
+                  Object c = gChild.getChild(childKeyIt.next());
+                  if (c instanceof SimpleWiseTreeElement) {
+                     SimpleWiseTreeElement simpleChild = (SimpleWiseTreeElement)c;
+                     System.out.println("outputTree Group child name: " + simpleChild.getName()
+                        + "  value: " + simpleChild.getValue());
+
+                     sb.append(simpleChild.getType() + " : " + simpleChild.getName() + " = "
+                        + simpleChild.getValue() + "\n");
+                  }
+               }
+            } else {
+
+               sb.append(child.getType() + " : " + child.getName() + " = "
+                  + ((SimpleWiseTreeElement) child).getValue() + "\n");
+               // child.getType() : child.getName() = ((SimpleWiseTreeElement)child).getValue()
+            }
+         }
+      }
+
+      return sb.toString();
+   }
+
+   //-------- rls end
+
    public void performInvocation() {
+
       outputTree = null;
       error = null;
       responseMessage = null;
@@ -190,6 +406,7 @@ public class ClientConversationBean implements Serializable {
    }
 
    public void generateRequestPreview() {
+
       requestPreview = null;
       try {
          WSMethod wsMethod = ClientHelper.getWSMethod(currentOperation, client);
@@ -203,15 +420,248 @@ public class ClientConversationBean implements Serializable {
       }
    }
 
+   //---------- rls start
+   public String myGenerateRequestPreview(TreeElement rootTreeElement) {
+      String str = transferInputValues(rootTreeElement);
+      generateRequestPreview();
+      /***
+      return "currentOperation: " + currentOperation
+         + "---------\n" + str + "---------\n" + requestPreview;
+      ***/
+      return requestPreview;
+      //return dumpTree(rootTreeElement) + "###" + str;
+   }
+
+
+   private String transferInputValues(TreeElement root) {
+      StringBuilder sb = new StringBuilder();
+      if (root == null) {
+         System.out.println("root is NULL");
+
+      } else {
+         System.out.println("---");
+         System.out.println("root: arg name: " + root.getName()
+            + "  classType: " + root.getClassType()
+            + "  kind: " + root.getKind());
+
+         sb.append("---" + "\n");
+         sb.append("root: arg name: " + root.getName()
+            + "  classType: " + root.getClassType()
+            + "  kind: " + root.getKind() + "\n");
+
+         for(TreeElement te : root.getChildren()) {
+
+            WiseTreeElement wte = treeElementMap.get(te.getId());
+            if (wte == null) {
+               sb.append("wte is NULL\n");
+
+            } else {
+               System.out.println("wte classname: " + wte.getClass().toString());
+               sb.append("wte classname: " + wte.getClass().toString() + "\n");
+               System.out.println("treeElement kind: " + te.getKind());
+               sb.append("treeElement kind: " + te.getKind() + "\n");
+
+               if (TreeElement.SIMPLE.equals(te.getKind())) {
+                  System.out.println("child: arg name: " + te.getName()
+                     + "  classType: " + te.getClassType()
+                     + "  kind: " + te.getKind());
+                  sb.append("child: arg name: " + te.getName()
+                     + "  classType: " + te.getClassType()
+                     + "  kind: " + te.getKind() + "\n");
+
+                  ((SimpleWiseTreeElement)wte).setValue(((SimpleTreeElement)te).getValue());
+                  wte.setNil(false);
+                  //wte.setNillable(false);
+                  System.out.println("transferred value: " + ((SimpleWiseTreeElement)wte).getValue()
+                     + " Nil: " + wte.isNil() + "  Nillable: " + wte.isNillable());
+                  sb.append("transferred value: " + ((SimpleWiseTreeElement)wte).getValue()
+                     + " Nil: " + wte.isNil() + "  Nillable: " + wte.isNillable()
+                     + "\n");
+
+               } else if (TreeElement.GROUP.equals(te.getKind())) {
+                  System.out.println("child: arg name: " + te.getName()
+                     + "  classType: " + te.getClassType()
+                     + "  rawType: " + ((GroupTreeElement) te).getProtoType().getClassType()
+                     + "  kind: " + te.getKind());
+                  sb.append("child: arg name: " + te.getName()
+                     + "  classType: " + te.getClassType()
+                     + "  rawType: " + ((GroupTreeElement) te).getProtoType().getClassType()
+                     + "  kind: " + te.getKind() + "\n");
+
+                  // for (String s : ((GroupTreeElement) te).getProtoType().getValueList()) {
+                  for (TreeElement s : ((GroupTreeElement) te).getValueList()) {
+                     System.out.println("value: " + ((SimpleTreeElement)s).getValue());
+                     sb.append("value: " + ((SimpleTreeElement)s).getValue() + "\n");
+                  }
+
+                  System.out.println("GroupWiseTreeElement Nil: " + wte.isNil()
+                     + "  Nillable: " + wte.isNillable());
+                  sb.append("GroupWiseTreeElement Nil: " + wte.isNil()
+                     + "  Nillable: " + wte.isNillable() + "\n");
+
+
+                  //System.out.println("before: getChildrenKeysIterator size: " + ((GroupWiseTreeElement) wte).getSize());
+                  //sb.append("before: getChildrenKeysIterator size: " + ((GroupWiseTreeElement) wte).getSize() + "\n");
+
+                  // A separte key list is required to successfull remove child-key pairs.
+                  Iterator<Object> childKeyIt = wte.getChildrenKeysIterator();
+                  List<Object> objList = new ArrayList<Object>();
+                  while (childKeyIt.hasNext()) {
+                     objList.add(childKeyIt.next());
+                  }
+
+                  for(Object key : objList) {
+                     Object value = wte.getChild(key);
+                     System.out.println("rmChild key: " + key.toString() + "  value: " + value.getClass().getName());
+                     sb.append("rmChild key: " + key.toString() + "  value: " + value.getClass().getName() + "\n");
+                     wte.removeChild(key);
+                  }
+
+                 // System.out.println("after: getChildrenKeysIterator size: " + ((GroupWiseTreeElement) wte).getSize());
+                 // sb.append("after: getChildrenKeysIterator size: " + ((GroupWiseTreeElement) wte).getSize() + "\n");
+
+                  for (TreeElement s : ((GroupTreeElement) te).getValueList()) {
+                     WiseTreeElement childWte = ((GroupWiseTreeElement) wte).incrementChildren();
+
+                     if (childWte instanceof  SimpleWiseTreeElement){
+                        ((SimpleWiseTreeElement)childWte).setValue(((SimpleTreeElement)s).getValue());
+                        childWte.setNil(false);
+                        System.out.println("transferred value: " + ((SimpleTreeElement)s).getValue());
+                        sb.append("transferred value: " + ((SimpleTreeElement)s).getValue() + "\n");
+                     }
+                  }
+
+                  System.out.println("added: getChildrenKeysIterator size: " + ((GroupWiseTreeElement) wte).getSize());
+                  sb.append("added: getChildrenKeysIterator size: " + ((GroupWiseTreeElement) wte).getSize() + "\n");
+
+               } else if (TreeElement.ENUMERATION.equals(te.getKind())) {
+                  System.out.println("Enum child: arg name: " + te.getName()
+                     + "  classType: " + te.getClassType()
+                     + "  kind: " + te.getKind());
+                  sb.append("Enum child: arg name: " + te.getName()
+                     + "  classType: " + te.getClassType()
+                     + "  kind: " + te.getKind()
+                     + "  value: " + ((EnumerationTreeElement)te).getValue() + "\n");
+
+                  for (String v : ((EnumerationTreeElement) te).getEnumValues()) {
+                     System.out.println("Enum child: value" + v);
+                     sb.append("Enum child: value" + v + "\n");
+                  }
+
+                  ((EnumerationWiseTreeElement)wte).setValue(((EnumerationTreeElement)te).getValue());
+
+                  System.out.println("EnumerationWiseTreeElement Nil: " + wte.isNil()
+                     + "  Nillable: " + wte.isNillable());
+                  sb.append("EnumerationWiseTreeElement Nil: " + wte.isNil()
+                     + "  Nillable: " + wte.isNillable() + "\n");
+
+
+               } else {
+                  System.out.println("UNKNOW Kind: child: arg name: " + te.getName()
+                     + "  classTypeAsString: " + te.getClassType()
+                     + "  kind: " + te.getKind());
+                  sb.append("UNKNOW Kind: child: arg name: " + te.getName()
+                     + "  classTypeAsString: " + te.getClassType()
+                     + "  kind: " + te.getKind() + "\n");
+
+               }
+
+            }
+         }
+      }
+      return sb.toString();
+   }
+
+
+   private String dumpTree(TreeElement root) {
+      StringBuilder sb = new StringBuilder();
+      if (root == null) {
+         System.out.println("root is NULL");
+
+      } else {
+         System.out.println("---");
+         System.out.println("root: arg name: " + root.getName()
+            + "  classType: " + root.getClassType()
+            + "  kind: " + root.getKind());
+
+         sb.append("---" + "\n");
+         sb.append("root: arg name: " + root.getName()
+            + "  classType: " + root.getClassType()
+            + "  kind: " + root.getKind() + "\n");
+
+         for(TreeElement te : root.getChildren()) {
+
+               if (TreeElement.SIMPLE.equals(te.getKind())) {
+                  System.out.println("child: arg name: " + te.getName()
+                     + "  classType: " + te.getClassType()
+                     + "  kind: " + te.getKind());
+                  sb.append("child: arg name: " + te.getName()
+                     + "  classType: " + te.getClassType()
+                     + "  kind: " + te.getKind() + "\n");
+
+
+               } else if (TreeElement.GROUP.equals(te.getKind())) {
+                  System.out.println("child: arg name: " + te.getName()
+                     + "  classType: " + te.getClassType()
+                     //+ "  rawType: " + ((GroupTreeElement)te).getRawType()
+                     + "  rawType: " + ((GroupTreeElement) te).getProtoType().getClassType()
+                     + "  kind: " + te.getKind());
+                  sb.append("child: arg name: " + te.getName()
+                     + "  classType: " + te.getClassType()
+                     //+ "  rawType: " + ((GroupTreeElement)te).getRawType()
+                     + "  rawType: " + ((GroupTreeElement) te).getProtoType().getClassType()
+                     + "  kind: " + te.getKind() + "\n");
+
+                  for (TreeElement s : ((GroupTreeElement) te).getValueList()) {
+                     System.out.println("value: " + ((SimpleTreeElement)s).getValue());
+                     sb.append("value: " + s + "\n");
+                  }
+
+
+               } else if (TreeElement.ENUMERATION.equals(te.getKind())) {
+                  System.out.println("Enum child: arg name: " + te.getName()
+                     + "  classType: " + te.getClassType()
+                     + "  kind: " + te.getKind());
+                  sb.append("Enum child: arg name: " + te.getName()
+                     + "  classType: " + te.getClassType()
+                     + "  kind: " + te.getKind()
+                     + "  value: " + ((SimpleTreeElement)te).getValue() + "\n");
+
+                  for (String v : ((EnumerationTreeElement) te).getEnumValues()) {
+                     System.out.println("Enum child: value" + v);
+                     sb.append("Enum child: value" + v + "\n");
+                  }
+
+
+               } else {
+                  System.out.println("UNKNOW Kind: child: arg name: " + te.getName()
+                     + "  classTypeAsString: " + te.getClassType()
+                     + "  kind: " + te.getKind());
+                  sb.append("UNKNOW Kind: child: arg name: " + te.getName()
+                     + "  classTypeAsString: " + te.getClassType()
+                     + "  kind: " + te.getKind() + "\n");
+
+               }
+
+
+         }
+      }
+      return sb.toString();
+   }
+   //---------- rls end
+
    public void addChild(GroupWiseTreeElement el) {
+
       el.incrementChildren();
    }
 
    public void removeChild(WiseTreeElement el) {
+
       ((GroupWiseTreeElement) el.getParent()).removeChild(el.getId());
    }
 
    public void lazyLoadChild(LazyLoadWiseTreeElement el) {
+
       try {
          el.resolveReference();
       } catch (Exception e) {
@@ -221,10 +671,12 @@ public class ClientConversationBean implements Serializable {
    }
 
    public void onInputFocus(WiseTreeElement el) {
+
       el.setNotNil(true);
    }
 
    public void changePanel(ItemChangeEvent event) {
+
       String oldName = event.getOldItemName();
       String newName = event.getNewItemName();
       if (oldName != null && newName != null) {
@@ -253,6 +705,7 @@ public class ClientConversationBean implements Serializable {
    }
 
    public void updateCurrentOperation(ItemChangeEvent event) {
+
       String ev = event.getNewItemName();
       //skip empty/null operation values as those comes from expansion/collapse of the menu panel
       if (ev != null && ev.length() > 0) {
@@ -261,10 +714,12 @@ public class ClientConversationBean implements Serializable {
    }
 
    public boolean isResponseAvailable() {
+
       return outputTree != null || responseMessage != null;
    }
 
    private void cleanup() {
+
       if (client != null) {
          cleanupTask.removeRef(client);
          client.close();
@@ -282,21 +737,26 @@ public class ClientConversationBean implements Serializable {
       error = null;
       responseMessage = null;
       invocationUrl = null;
+      treeElementMap.clear();
    }
 
    public String getWsdlUrl() {
+
       return wsdlUrl;
    }
 
    public void setWsdlUrl(String wsdlUrl) {
+
       this.wsdlUrl = wsdlUrl;
    }
 
    public String getWsdlUser() {
+
       return wsdlUser;
    }
 
    public void setWsdlUser(String wsdlUser) {
+
       if (wsdlUser != null && wsdlUser.length() == 0) {
          this.wsdlUser = null;
       } else {
@@ -305,10 +765,12 @@ public class ClientConversationBean implements Serializable {
    }
 
    public String getWsdlPwd() {
+
       return wsdlPwd;
    }
 
    public void setWsdlPwd(String wsdlPwd) {
+
       if (wsdlPwd != null && wsdlPwd.length() == 0) {
          this.wsdlPwd = null;
       } else {
@@ -317,10 +779,12 @@ public class ClientConversationBean implements Serializable {
    }
 
    public String getInvocationUrl() {
+
       return invocationUrl;
    }
 
    public void setInvocationUrl(String invocationUrl) {
+
       if (invocationUrl != null && invocationUrl.length() == 0) {
          this.invocationUrl = null;
       } else {
@@ -329,10 +793,12 @@ public class ClientConversationBean implements Serializable {
    }
 
    public String getInvocationUser() {
+
       return invocationUser;
    }
 
    public void setInvocationUser(String invocationUser) {
+
       if (invocationUser != null && invocationUser.length() == 0) {
          this.invocationUser = null;
       } else {
@@ -341,10 +807,12 @@ public class ClientConversationBean implements Serializable {
    }
 
    public String getInvocationPwd() {
+
       return invocationPwd;
    }
 
    public void setInvocationPwd(String invocationPwd) {
+
       if (invocationPwd != null && invocationPwd.length() == 0) {
          this.invocationPwd = null;
       } else {
@@ -353,82 +821,102 @@ public class ClientConversationBean implements Serializable {
    }
 
    public List<Service> getServices() {
+
       return services;
    }
 
    public void setServices(List<Service> services) {
+
       this.services = services;
    }
 
    public String getCurrentOperation() {
+
       return currentOperation;
    }
 
    public String getCurrentOperationFullName() {
+
       return currentOperationFullName;
    }
 
    public void setCurrentOperation(String currentOperation) {
+
       this.currentOperation = currentOperation;
    }
 
    public UITree getInTree() {
+
       return inTree;
    }
 
    public void setInTree(UITree inTree) {
+
       this.inTree = inTree;
    }
 
    public TreeNodeImpl getInputTree() {
+
       return inputTree;
    }
 
    public void setInputTree(TreeNodeImpl inputTree) {
+
       this.inputTree = inputTree;
    }
 
    public TreeNodeImpl getOutputTree() {
+
       return outputTree;
    }
 
    public void setOutputTree(TreeNodeImpl outputTree) {
+
       this.outputTree = outputTree;
    }
 
    public String getError() {
+
       return error;
    }
 
    public void setError(String error) {
+
       this.error = error;
    }
 
    public String getRequestPreview() {
+
       return requestPreview;
    }
 
    public void setRequestPreview(String requestPreview) {
+
       this.requestPreview = requestPreview;
    }
 
    public String getRequestActiveTab() {
+
       return requestActiveTab;
    }
 
    public void setRequestActiveTab(String requestActiveTab) {
+
       this.requestActiveTab = requestActiveTab;
    }
 
    public String getResponseMessage() {
+
       return responseMessage;
    }
 
    public void setResponseMessage(String responseMessage) {
+
       this.responseMessage = responseMessage;
    }
 
    private static void logException(Exception e) {
+
       logger.error("", e);
    }
 }

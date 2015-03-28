@@ -5,7 +5,6 @@ import org.jboss.as.controller.client.OperationBuilder;
 import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.Property;
-import javax.enterprise.context.ConversationScoped;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -18,7 +17,7 @@ import java.util.List;
  * User: rsearls
  * Date: 3/1/15
  */
-//@ConversationScoped
+
 public class WsdlFinder implements Serializable {
 
     private List<String> wsdlList = new ArrayList<String>();

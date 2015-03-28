@@ -30,6 +30,7 @@ public class EndpointsView extends Composite implements EndpointsPresenter.Displ
    private Tree rootNode = null;
 
    public EndpointsView() {
+
       DecoratorPanel contentDetailsDecorator = new DecoratorPanel();
       contentDetailsDecorator.setWidth("48em");
       initWidget(contentDetailsDecorator);
@@ -48,10 +49,12 @@ public class EndpointsView extends Composite implements EndpointsPresenter.Displ
    }
 
    public Tree getData() {
+
       return rootNode;
    }
 
    public String getId(TreeItem treeItem) {
+
       if (treeItem != null) {
          Operation o = endpointsMap.get(treeItem);
          if (o != null) {
@@ -60,26 +63,19 @@ public class EndpointsView extends Composite implements EndpointsPresenter.Displ
       }
       return null;
    }
-   /**
-    public HasClickHandlers getSaveButton() {
-    return saveButton;
-    }
-    **/
-   /**
-    * public HasClickHandlers getCancelButton() {
-    * return cancelButton;
-    * }
-    */
 
    public HasClickHandlers getBackButton() {
+
       return backButton;
    }
 
    public Widget asWidget() {
+
       return this;
    }
 
    public void setData(List<Service> data) {
+
       endpointsMap.clear();
       rootNode.removeItems();
       if (data != null) {
