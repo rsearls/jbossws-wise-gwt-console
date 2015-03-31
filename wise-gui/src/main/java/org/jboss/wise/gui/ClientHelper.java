@@ -42,6 +42,7 @@ import org.jboss.wise.core.client.WebParameter;
 import org.jboss.wise.core.exception.ResourceNotAvailableException;
 import org.jboss.wise.core.exception.WiseRuntimeException;
 import org.jboss.wise.gui.model.TreeNode;
+import org.jboss.wise.gui.tree.element.TreeElement;
 import org.jboss.wise.gui.treeElement.*;
 import org.jboss.wise.gui.model.TreeNodeImpl;
 
@@ -73,6 +74,7 @@ public class ClientHelper implements Serializable {
          if (parameter.getMode() != WebParam.Mode.OUT) {
             WiseTreeElement wte = builder.buildTreeFromType(parameter.getType(), parameter.getName(),
                null, !rpcLit);
+            /****
             //- rls test
             System.out.println("-## WiseTreeElement: " + wte.getClass().getName());
             System.out.println("-#### name: " + wte.getName() + "  type: " + wte.getType()
@@ -114,7 +116,7 @@ public class ClientHelper implements Serializable {
                   }
                }
             }
-            //-
+            //- *****/
             rootElement.addChild(wte.getId(), wte);
          }
       }
@@ -193,7 +195,6 @@ public class ClientHelper implements Serializable {
    }
 
    //- rls start
-
    public static List<String> getOperationList(List<Service> services) {
       ArrayList<String> oList = new ArrayList<String>();
       if (services != null) {

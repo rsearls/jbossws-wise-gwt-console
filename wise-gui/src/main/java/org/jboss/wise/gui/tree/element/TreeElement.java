@@ -29,7 +29,8 @@ public abstract class TreeElement implements Serializable {
    protected String kind;
    protected String classType;
    protected List<TreeElement> children = new LinkedList<TreeElement>();
-   //protected String value;
+   protected boolean nil; //whether this elements has the attribute xsi:nil set to "true"
+
 
    public String getId() {
 
@@ -80,17 +81,15 @@ public abstract class TreeElement implements Serializable {
 
       return children;
    }
-  /***********
-   public String getValue() {
 
-      return value;
+   public boolean isNil() {
+      return nil;
    }
 
-   public void setValue(String value) {
-
-      this.value = value;
+   public void setNil(boolean nil) {
+      this.nil = nil;
    }
-   *********/
+
    public String getCleanClassName(String src) {
       String tmpStr = src;
       int index = src.trim().lastIndexOf(" ");

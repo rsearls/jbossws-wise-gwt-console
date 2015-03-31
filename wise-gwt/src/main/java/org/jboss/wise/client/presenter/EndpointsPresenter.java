@@ -19,8 +19,6 @@ import org.jboss.wise.client.event.EndpointConfigEvent;
 import org.jboss.wise.gui.Service;
 import org.jboss.wise.shared.WsdlInfo;
 
-//import com.google.gwt.sample.contacts.shared.Contact;
-
 /**
  * User: rsearls
  * Date: 3/6/15

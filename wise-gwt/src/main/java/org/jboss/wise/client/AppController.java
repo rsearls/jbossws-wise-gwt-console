@@ -79,7 +79,7 @@ public class AppController implements Presenter, ValueChangeHandler<String> {
          new InvocationEventHandler() {
             public void onInvocation(InvocationEvent event) {
 
-               doInvocation(event.getId());
+               doInvocation(event.getId(), event.getWsdlInfo());
             }
          });
    }
@@ -98,9 +98,10 @@ public class AppController implements Presenter, ValueChangeHandler<String> {
       presenter.go(container);
    }
 
-   private void doInvocation (TreeElement treeElement) {
+   private void doInvocation (TreeElement treeElement, WsdlInfo wsdlInfo) {
       History.newItem("invoke", false);
-      Presenter presenter = new InvocationPresenter(rpcService, eventBus, new InvocationView(), treeElement);
+      Presenter presenter = new InvocationPresenter(rpcService, eventBus, new InvocationView(),
+         treeElement, wsdlInfo);
       presenter.go(container);
    }
 

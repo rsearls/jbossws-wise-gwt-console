@@ -3,7 +3,6 @@ package org.jboss.wise.client.view;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.HasClickHandlers;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DecoratorPanel;
@@ -12,6 +11,8 @@ import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.IntegerBox;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.ListBox;
+import com.google.gwt.user.client.ui.PasswordTextBox;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
@@ -23,8 +24,10 @@ import java.util.Map;
 import org.jboss.wise.client.presenter.EndpointConfigPresenter;
 import org.jboss.wise.gui.tree.element.EnumerationTreeElement;
 import org.jboss.wise.gui.tree.element.GroupTreeElement;
+import org.jboss.wise.gui.tree.element.RequestResponse;
 import org.jboss.wise.gui.tree.element.SimpleTreeElement;
 import org.jboss.wise.gui.tree.element.TreeElement;
+import org.jboss.wise.shared.WsdlInfo;
 
 /**
  * User: rsearls
@@ -32,6 +35,9 @@ import org.jboss.wise.gui.tree.element.TreeElement;
  */
 public class EndpointConfigView extends Composite implements EndpointConfigPresenter.Display {
 
+   private final int COL_ONE = 0;
+   private final int COL_TWO = 1;
+   private final int COL_THREE = 2;
 
    private final int COL_LABEL = 0;
    private final int COL_ADD_BUTTON = 1;
@@ -49,7 +55,13 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
    private TreeElement rootParamNode = null;
    private List<FlexTable> flexTableList = new ArrayList<FlexTable>();
    private Map<Widget, GroupTreeElement> groupTreeWidgetMap = new HashMap<Widget, GroupTreeElement>();
-   private FlexTable flexTable;
+   private RequestResponse  msgInvocationResult;
+   private int widgetCountOffset = 0;
+
+   private TextBox wsdlAddress;
+   private TextBox user;
+   private PasswordTextBox password;
+
 
    public EndpointConfigView() {
 
@@ -59,6 +71,9 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
 
       baseVerticalPanel = new VerticalPanel();
       baseVerticalPanel.setWidth("100%");
+
+      FlexTable fTable = createCredentialOverRidePanel();
+      baseVerticalPanel.add(fTable);
 
       HorizontalPanel menuPanel = new HorizontalPanel();
       invokeButton = new Button("Invoke");
@@ -70,6 +85,7 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
       baseVerticalPanel.add(menuPanel);
 
       contentDetailsDecorator.add(baseVerticalPanel);
+      widgetCountOffset = 2;
    }
 
    public HasClickHandlers getInvokeButton() {
@@ -92,87 +108,204 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
       return this;
    }
 
-   public void setData(TreeElement data) {
-      rootParamNode = data;
+   public void setData(RequestResponse data) {
+      msgInvocationResult = data;
+      rootParamNode = data.getTreeElement();
       processData(rootParamNode.getChildren());
    }
 
 
-  private void processData(List<TreeElement> pNodeList) {
-     //- TODO handle case where no input args
-     if (pNodeList.isEmpty()) {
-        HorizontalPanel hPanel = createNoParamPanel();
-        baseVerticalPanel.insert(hPanel, baseVerticalPanel.getWidgetCount() - 1);
+   private void processData(List<TreeElement> pNodeList) {
 
-     } else {
-        for (TreeElement pNode : pNodeList) {
+      baseVerticalPanel.insert(createFullnamePanel(), baseVerticalPanel.getWidgetCount() - widgetCountOffset);
 
-           if (pNode instanceof GroupTreeElement) {
-              FlexTable fTable = getParamaterizedPanel((GroupTreeElement) pNode);
-              baseVerticalPanel.insert(fTable, baseVerticalPanel.getWidgetCount() - 1);
+      //- TODO handle case where no input args
+      if (pNodeList.isEmpty()) {
+         HorizontalPanel hPanel = createNoParamPanel();
+         baseVerticalPanel.insert(hPanel, baseVerticalPanel.getWidgetCount() - widgetCountOffset);
 
-              debugBox.setText("paramsTable RowCount: " + Integer.toString(fTable.getRowCount())
-                 + "  widget cnt: " + Integer.toString(baseVerticalPanel.getWidgetCount()));
+      } else {
+         for (TreeElement pNode : pNodeList) {
 
-           } else if (pNode instanceof EnumerationTreeElement) {
-              // TODO
-           } else {
-              HorizontalPanel hPanel = getParamPanel(pNode);
-              baseVerticalPanel.insert(hPanel, baseVerticalPanel.getWidgetCount() - 1);
-           }
-        }
-     }
-  }
+            if (pNode instanceof GroupTreeElement) {
+               FlexTable fTable = createParamaterizedPanel((GroupTreeElement) pNode);
+               baseVerticalPanel.insert(fTable, baseVerticalPanel.getWidgetCount() - widgetCountOffset);
 
-  private FlexTable getParamaterizedPanel(GroupTreeElement pNode) {
+               debugBox.setText("paramsTable RowCount: " + Integer.toString(fTable.getRowCount())
+                  + "  widget cnt: " + Integer.toString(baseVerticalPanel.getWidgetCount()));
 
-     flexTable = new FlexTable();
-     FlexTable fTable = flexTable;
-     flexTableList.add(fTable);
-     fTable.setCellSpacing(2);
-     fTable.setCellPadding(2);
-     fTable.setWidth("100%");
+            } else if (pNode instanceof EnumerationTreeElement) {
+               // TODO
+               HorizontalPanel hPanel = createEnumerationPanel((EnumerationTreeElement) pNode);
+               baseVerticalPanel.insert(hPanel, baseVerticalPanel.getWidgetCount() - widgetCountOffset);
+            } else {
+               if (TreeElement.SIMPLE.equals(pNode.getKind())) {
+                  HorizontalPanel hPanel = createSimpleParamsPanel(pNode);
+                  baseVerticalPanel.insert(hPanel, baseVerticalPanel.getWidgetCount() - widgetCountOffset);
 
-     fTable.getColumnFormatter().setWidth(COL_LABEL, "20%");
-     fTable.getColumnFormatter().setWidth(COL_ADD_BUTTON, "40%");
-     fTable.getColumnFormatter().setWidth(COL_INFIELD, "20%");
-     fTable.getColumnFormatter().setWidth(COL_REMOVE_BUTTON, "20%");
+               } else if (TreeElement.COMPLEX.equals(pNode.getKind())) {
+                  FlexTable fTable = createComplexParamsPanel(pNode);
+                  baseVerticalPanel.insert(fTable, baseVerticalPanel.getWidgetCount() - widgetCountOffset);
+               }
+            }
+         }
+      }
+   }
 
-     Widget widget = getWidget(pNode.getProtoType());
-     paramWidgetTable.put(widget, pNode.getProtoType());
-     ///collectionRootWidgets.add(widget);
-     groupTreeWidgetMap.put(widget, pNode);
 
-     fTable.setWidget(0, COL_LABEL, getLabel(pNode));
-     fTable.setWidget(0, COL_INFIELD, widget);
-     widget.setVisible(false);
+   private HorizontalPanel createEnumerationPanel(EnumerationTreeElement eNode) {
 
-     // debug
-     if (widget instanceof TextBox) {
-        debugBox = (TextBox) widget;
-     }
+      HorizontalPanel hPanel = new HorizontalPanel();
+      Label label = new Label(getBaseType(eNode.getClassType()));
+      hPanel.add(label);
+      ListBox lBox = new ListBox();
+      lBox.setSelectedIndex(-1);
+      hPanel.add(lBox);
+      paramWidgetTable.put(lBox, eNode);
 
-     Button addButton = new Button("add");
-     fTable.setWidget(0, COL_ADD_BUTTON, addButton);
+      // put emun names in the list
+      lBox.addItem(""); // unselected designator first
+      for (String s : eNode.getEnumValues()) {
+         lBox.addItem(s);
+      }
 
-     debugBox.setText("paramsTable RowCount: " + Integer.toString(fTable.getRowCount())
-        + "  widget cnt: " + Integer.toString(baseVerticalPanel.getWidgetCount()));
+      return hPanel;
+   }
 
-     addButton.addClickHandler(new AddParamerterizeRowClickHandler(this,
-        paramWidgetTable, fTable));
-     return fTable;
-  }
+   private FlexTable createParamaterizedPanel(GroupTreeElement pNode) {
 
-  private HorizontalPanel getParamPanel(TreeElement pNode) {
+      FlexTable fTable = new FlexTable();
+      flexTableList.add(fTable);
+      fTable.setCellSpacing(2);
+      fTable.setCellPadding(2);
+      fTable.setWidth("100%");
 
-     HorizontalPanel hPanel = new HorizontalPanel();
+      fTable.getColumnFormatter().setWidth(COL_LABEL, "20%");
+      fTable.getColumnFormatter().setWidth(COL_ADD_BUTTON, "40%");
+      fTable.getColumnFormatter().setWidth(COL_INFIELD, "20%");
+      fTable.getColumnFormatter().setWidth(COL_REMOVE_BUTTON, "20%");
 
-     hPanel.add(getLabel(pNode));
-     Widget w = getWidget(pNode);
-     hPanel.add(w);
-     paramWidgetTable.put(w, pNode);
-     return hPanel;
-  }
+      Widget widget = getWidget(pNode.getProtoType());
+      paramWidgetTable.put(widget, pNode.getProtoType());
+      groupTreeWidgetMap.put(widget, pNode);
+
+      fTable.setWidget(0, COL_LABEL, getLabel(pNode));
+      fTable.setWidget(0, COL_INFIELD, widget);
+      widget.setVisible(false);
+
+      // debug
+      if (widget instanceof TextBox) {
+         debugBox = (TextBox) widget;
+      }
+
+      Button addButton = new Button("add");
+      fTable.setWidget(0, COL_ADD_BUTTON, addButton);
+
+      debugBox.setText("paramsTable RowCount: " + Integer.toString(fTable.getRowCount())
+         + "  widget cnt: " + Integer.toString(baseVerticalPanel.getWidgetCount()));
+
+      addButton.addClickHandler(new AddParamerterizeRowClickHandler(this,
+         paramWidgetTable, fTable));
+      return fTable;
+   }
+
+   private HorizontalPanel createSimpleParamsPanel(TreeElement pNode) {
+
+      HorizontalPanel hPanel = new HorizontalPanel();
+
+      hPanel.add(getLabel(pNode));
+      Widget w = getWidget(pNode);
+      hPanel.add(w);
+      paramWidgetTable.put(w, pNode);
+      return hPanel;
+   }
+
+   private FlexTable createComplexParamsPanel(TreeElement pNode) {
+
+      FlexTable fTable = new FlexTable();
+      fTable.setCellSpacing(2);
+      fTable.setCellPadding(2);
+      fTable.setWidth("100%");
+
+      fTable.getColumnFormatter().setWidth(COL_LABEL, "20%");
+      fTable.getColumnFormatter().setWidth(COL_ADD_BUTTON, "40%");
+      fTable.getColumnFormatter().setWidth(COL_INFIELD, "20%");
+      fTable.getColumnFormatter().setWidth(COL_REMOVE_BUTTON, "20%");
+
+      Label header = new Label(getBaseType(pNode.getClassType()) + " : " + pNode.getName());
+
+      fTable.setWidget(0, COL_ONE, header);
+
+      int row = 0;
+      for (TreeElement ste : pNode.getChildren()) {
+         row++;
+         //String s = getBaseType(ste.getClassType()) + " : " + ste.getName();
+         Label label = new Label(getBaseType(ste.getClassType()) + " : " + ste.getName());
+         Widget widget = getWidget(ste);
+
+         fTable.setWidget(row, COL_TWO, label);
+         fTable.setWidget(row, COL_THREE, widget);
+
+         if (!(widget instanceof Label)) {
+            paramWidgetTable.put(widget, ste);
+         }
+      }
+
+      return fTable;
+   }
+
+   private HorizontalPanel createFullnamePanel() {
+      HorizontalPanel hPanel = new HorizontalPanel();
+      hPanel.add(new Label(msgInvocationResult.getOperationFullName()));
+      return hPanel;
+   }
+
+   private /*VerticalPanel*/ FlexTable createCredentialOverRidePanel() {
+      /*******
+      VerticalPanel vPanel = new VerticalPanel();
+      HorizontalPanel urlPanel = new HorizontalPanel();
+      urlPanel.add(new Label("Override target address: "));
+      urlPanel.add(new TextBox());
+
+      HorizontalPanel namePanel = new HorizontalPanel();
+      namePanel.add(new Label("User: "));
+      namePanel.add(new TextBox());
+
+      HorizontalPanel passwordPanel = new HorizontalPanel();
+      passwordPanel.add(new Label("Password: "));
+      passwordPanel.add(new PasswordTextBox());
+
+      vPanel.add(urlPanel);
+      vPanel.add(namePanel);
+      vPanel.add(passwordPanel);
+
+      return vPanel;
+      ********/
+      FlexTable fTable = new FlexTable();
+      fTable.setCellSpacing(2);
+      fTable.setCellPadding(2);
+      fTable.setBorderWidth(2);
+      fTable.setWidth("100%");
+
+      fTable.getColumnFormatter().setWidth(COL_ONE, "20%");
+      fTable.getColumnFormatter().setWidth(COL_TWO, "40%");
+
+      wsdlAddress = new TextBox();
+      wsdlAddress.setWidth("28em");
+      user = new TextBox();
+      password = new PasswordTextBox();
+
+      fTable.setWidget(0, COL_ONE, new Label("Override target address: "));
+      fTable.setWidget(0, COL_TWO, wsdlAddress);
+
+      fTable.setWidget(1, COL_ONE, new Label("User: "));
+      fTable.setWidget(1, COL_TWO, user);
+
+      fTable.setWidget(2, COL_ONE, new Label("Password: "));
+      fTable.setWidget(2, COL_TWO, password);
+
+      return fTable;
+   }
 
    private HorizontalPanel createNoParamPanel() {
 
@@ -181,37 +314,37 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
       return hPanel;
    }
 
-  private Widget getWidget(TreeElement pNode) {
+   private Widget getWidget(TreeElement pNode) {
 
-     if ("java.lang.String".endsWith(pNode.getClassType())) {
-        return new TextBox();
-     } else if ("java.lang.Integer".equals(pNode.getClassType())) {
-        return new IntegerBox();
-     } else if ("java.lang.Double".equals(pNode.getClassType())) {
-        return new DoubleBox();
-     }
-     return new Label("UNKNOWN TYPE: " + pNode.getClassType());
-  }
+      if ("java.lang.String".endsWith(pNode.getClassType())) {
+         return new TextBox();
+      } else if ("java.lang.Integer".equals(pNode.getClassType())) {
+         return new IntegerBox();
+      } else if ("java.lang.Double".equals(pNode.getClassType())) {
+         return new DoubleBox();
+      }
+      return new Label("UNKNOWN TYPE: " + pNode.getClassType());
+   }
 
-  private Label getLabel(TreeElement pNode) {
+   private Label getLabel(TreeElement pNode) {
 
-     String typeLabel = "";
-     if (pNode instanceof GroupTreeElement) {
-        typeLabel = getBaseType(((GroupTreeElement) pNode).getClassType())
-           + "<" + getBaseType(((GroupTreeElement) pNode).getProtoType().getClassType())
-           + ">:" + pNode.getName();
+      String typeLabel = "";
+      if (pNode instanceof GroupTreeElement) {
+         typeLabel = getBaseType(((GroupTreeElement) pNode).getClassType())
+            + "<" + getBaseType(((GroupTreeElement) pNode).getProtoType().getClassType())
+            + ">:" + pNode.getName();
 
-     } else {
-        if ("java.lang.String".endsWith(pNode.getClassType())) {
-           typeLabel = "String:" + pNode.getName();
-        } else if ("java.lang.Integer".equals(pNode.getClassType())) {
-           typeLabel = "Integer:" + pNode.getName();
-        } else if ("java.lang.Double".equals(pNode.getClassType())) {
-           typeLabel = "Double:" + pNode.getName();
-        }
-     }
-     return new Label(typeLabel);
-  }
+      } else {
+         if ("java.lang.String".endsWith(pNode.getClassType())) {
+            typeLabel = "String:" + pNode.getName();
+         } else if ("java.lang.Integer".equals(pNode.getClassType())) {
+            typeLabel = "Integer:" + pNode.getName();
+         } else if ("java.lang.Double".equals(pNode.getClassType())) {
+            typeLabel = "Double:" + pNode.getName();
+         }
+      }
+      return new Label(typeLabel);
+   }
 
    private String getBaseType(String src) {
 
@@ -223,19 +356,25 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
       return t;
    }
 
+   public WsdlInfo getWsdlInfo() {
+      return new WsdlInfo(wsdlAddress.getValue(), user.getValue(), password.getValue());
+   }
+
    /**
-    *
     * @return
     */
-   public TreeElement getParamNodeConfig() {
+   public TreeElement getParamsConfig() {
 
+      //StringBuilder sb = new StringBuilder();
+
+      // identify the root (reference) widget of each FlexTable
       List<Widget> flexTableRootWidget = new ArrayList<Widget>();
-      for(FlexTable fTable : flexTableList) {
+      for (FlexTable fTable : flexTableList) {
          flexTableRootWidget.add(fTable.getWidget(0, COL_INFIELD));
       }
 
-      // clear any pre-existing input data
-      for(GroupTreeElement gte : groupTreeWidgetMap.values()) {
+      // clear all pre-existing input data
+      for (GroupTreeElement gte : groupTreeWidgetMap.values()) {
          gte.getValueList().clear();
       }
 
@@ -249,37 +388,50 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
                SimpleTreeElement clone = (SimpleTreeElement) pNode.clone();
                TreeElement te = getWidgetValue(widget, clone);
                gTreeElement.addValue(te);
+
+            } else if (pNode instanceof EnumerationTreeElement) {
+               ListBox lBox = (ListBox) widget;
+               EnumerationTreeElement eNode = (EnumerationTreeElement) pNode;
+
+               int index = lBox.getSelectedIndex();
+               eNode.setValue(lBox.getItemText(index));
+               // debug
+               //Window.alert("index: " + index + "  value: " + eNode.getValue()
+               //   + "  Nil: " + eNode.isNil());
+
             } else {
                getWidgetValue(widget, (SimpleTreeElement) pNode);
+               //sb.append("name: " + pNode.getName() + "  value: "
+               //   + ((SimpleTreeElement) pNode).getValue()  + "\n");
             }
          }
       }
-
+      //Window.alert("config results: " + sb.toString() + "\n");
       return rootParamNode;
    }
 
-  private TreeElement getWidgetValue(Widget widget, SimpleTreeElement pNode) {
+   private TreeElement getWidgetValue(Widget widget, SimpleTreeElement pNode) {
 
-     if (widget instanceof TextBox) {
-        String s = ((TextBox)widget).getValue();
-        if (s != null && !s.isEmpty()) {
-           pNode.setValue(s);
-        }
+      if (widget instanceof TextBox) {
+         String s = ((TextBox) widget).getValue();
+         if (s != null && !s.isEmpty()) {
+            pNode.setValue(s);
+         }
 
-     } else if (widget instanceof IntegerBox) {
-        Integer i = ((IntegerBox) widget).getValue();
-        if (i != null) {
-           pNode.setValue(i.toString());
-        }
+      } else if (widget instanceof IntegerBox) {
+         Integer i = ((IntegerBox) widget).getValue();
+         if (i != null) {
+            pNode.setValue(i.toString());
+         }
 
-     } else if (widget instanceof DoubleBox) {
-        Double d = ((DoubleBox) widget).getValue();
-        if (d != null) {
-           pNode.setValue(d.toString());
-        }
-     }
-     return pNode;
-  }
+      } else if (widget instanceof DoubleBox) {
+         Double d = ((DoubleBox) widget).getValue();
+         if (d != null) {
+            pNode.setValue(d.toString());
+         }
+      }
+      return pNode;
+   }
 
    /**
     *
@@ -297,6 +449,7 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
          this.paramWidgetTable = paramWidgetTable;
          this.fTable = fTable;
       }
+
       public void onClick(ClickEvent event) {
 
          insertRowAfter();

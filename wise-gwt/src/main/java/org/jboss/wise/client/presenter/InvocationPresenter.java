@@ -11,8 +11,9 @@ import com.google.gwt.user.client.ui.Tree;
 import com.google.gwt.user.client.ui.Widget;
 import org.jboss.wise.client.MainServiceAsync;
 import org.jboss.wise.client.event.BackEvent;
-import org.jboss.wise.gui.tree.element.MessageInvocationResult;
+import org.jboss.wise.gui.tree.element.RequestResponse;
 import org.jboss.wise.gui.tree.element.TreeElement;
+import org.jboss.wise.shared.WsdlInfo;
 
 /**
  * User: rsearls
@@ -30,7 +31,7 @@ public class InvocationPresenter implements Presenter {
 
       String getResponseMessage();
 
-      void setData(MessageInvocationResult result);
+      void setData(RequestResponse result);
    }
 
    private final MainServiceAsync rpcService;
@@ -45,15 +46,16 @@ public class InvocationPresenter implements Presenter {
       bind();
    }
 
-   public InvocationPresenter(MainServiceAsync rpcService, HandlerManager eventBus, Display display, TreeElement treeElement) {
+   public InvocationPresenter(MainServiceAsync rpcService, HandlerManager eventBus, Display display,
+                              TreeElement treeElement, WsdlInfo wsdlInfo) {
 
       this.rpcService = rpcService;
       this.eventBus = eventBus;
       this.display = display;
       bind();
 
-      rpcService.getPerformInvocationOutputTree(treeElement, new AsyncCallback<MessageInvocationResult>() {
-         public void onSuccess(MessageInvocationResult result) {
+      rpcService.getPerformInvocationOutputTree(treeElement, wsdlInfo, new AsyncCallback<RequestResponse>() {
+         public void onSuccess(RequestResponse result) {
 
             InvocationPresenter.this.display.setData(result);
          }

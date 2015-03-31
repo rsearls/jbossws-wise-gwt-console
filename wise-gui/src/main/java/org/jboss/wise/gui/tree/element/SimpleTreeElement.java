@@ -16,6 +16,11 @@ public class SimpleTreeElement extends TreeElement implements Serializable {
 
    public void setValue(String value) {
 
+      if (value == null || value.isEmpty()) {
+         setNil(true);
+      } else {
+         setNil(false);
+      }
       this.value = value;
    }
 

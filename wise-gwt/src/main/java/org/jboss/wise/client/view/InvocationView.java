@@ -12,7 +12,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import org.jboss.wise.client.presenter.InvocationPresenter;
 import org.jboss.wise.gui.tree.element.GroupTreeElement;
-import org.jboss.wise.gui.tree.element.MessageInvocationResult;
+import org.jboss.wise.gui.tree.element.RequestResponse;
 import org.jboss.wise.gui.tree.element.SimpleTreeElement;
 import org.jboss.wise.gui.tree.element.TreeElement;
 
@@ -72,15 +72,15 @@ public class InvocationView extends Composite implements InvocationPresenter.Dis
       return responseMessage;
    }
 
-   public void setData(MessageInvocationResult result) {
+   public void setData(RequestResponse result) {
 
       responseMessage = result.getResponseMessage();
       TreeElement root = result.getTreeElement();
 
       if (root != null) {
-         TreeItem opNameItem = new TreeItem(SafeHtmlUtils.fromString(result.getOperationFullName()));
+         TreeItem opNameItem = new TreeItem(
+            SafeHtmlUtils.fromString(result.getOperationFullName()));
          rootNode.addItem(opNameItem);
-         opNameItem.setState(true);
 
          for (TreeElement child : root.getChildren()) {
             if (child instanceof GroupTreeElement) {
@@ -91,23 +91,32 @@ public class InvocationView extends Composite implements InvocationPresenter.Dis
                   SafeHtmlUtils.fromString(getBaseName(gChild.getClassType())
                      + "[" + gChild.getValueList().size() + "]"));
                opNameItem.addItem(resultItem);
-               resultItem.setState(true);
 
                for (TreeElement ste : gChild.getValueList()) {
                   TreeItem detailItem = new TreeItem(
                      SafeHtmlUtils.fromString(getBaseName(cte.getClassType()) + " : " + cte.getName() + " = "
                         + ((SimpleTreeElement) ste).getValue()));
                   resultItem.addItem(detailItem);
-                  detailItem.setState(true);
                }
+               resultItem.setState(true);
+
             } else {
                TreeItem resultItem = new TreeItem(
                   SafeHtmlUtils.fromString(getBaseName(child.getClassType()) + " : " + child.getName()
                      + " = " + ((SimpleTreeElement) child).getValue()));
                opNameItem.addItem(resultItem);
-               resultItem.setState(true);
             }
          }
+         opNameItem.setState(true);
+      } else {
+         // display error
+         TreeItem opNameItem = new TreeItem(SafeHtmlUtils.fromString(result.getOperationFullName()));
+         rootNode.addItem(opNameItem);
+
+         TreeItem errorItem = new TreeItem(
+            SafeHtmlUtils.fromString(result.getErrorMessage()));
+         opNameItem.addItem(errorItem);
+         opNameItem.setState(true);
       }
    }
 

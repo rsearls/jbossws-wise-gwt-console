@@ -11,7 +11,9 @@ import com.google.gwt.user.client.ui.Widget;
 import org.jboss.wise.client.MainServiceAsync;
 import org.jboss.wise.client.event.CancelledEvent;
 import org.jboss.wise.client.event.InvocationEvent;
+import org.jboss.wise.gui.tree.element.RequestResponse;
 import org.jboss.wise.gui.tree.element.TreeElement;
+import org.jboss.wise.shared.WsdlInfo;
 
 /**
  * User: rsearls
@@ -28,9 +30,10 @@ public class EndpointConfigPresenter implements Presenter {
 
       Widget asWidget();
 
-      void setData(TreeElement data);
+      void setData(RequestResponse data);
 
-      TreeElement getParamNodeConfig();
+      TreeElement getParamsConfig();
+      WsdlInfo getWsdlInfo();
    }
 
 
@@ -53,8 +56,8 @@ public class EndpointConfigPresenter implements Presenter {
       this.display = display;
       bind();
 
-      rpcService.getEndpointReflection(id, new AsyncCallback<TreeElement>() {
-         public void onSuccess(TreeElement result) {
+      rpcService.getEndpointReflection(id, new AsyncCallback<RequestResponse>() {
+         public void onSuccess(RequestResponse result) {
 
             EndpointConfigPresenter.this.display.setData(result);
          }
@@ -100,19 +103,20 @@ public class EndpointConfigPresenter implements Presenter {
 
    private void doInvoke() {
 
-      TreeElement pNode = EndpointConfigPresenter.this.display.getParamNodeConfig();
+      TreeElement pNode = EndpointConfigPresenter.this.display.getParamsConfig();
+      WsdlInfo wsdlInfo = EndpointConfigPresenter.this.display.getWsdlInfo();
       if (pNode == null) {
-         Window.alert("getParamNodeConfig returned NULL");
+         Window.alert("getParamsConfig returned NULL");
       } else {
-         eventBus.fireEvent(new InvocationEvent(pNode));
+         eventBus.fireEvent(new InvocationEvent(pNode, wsdlInfo));
       }
    }
 
    private void doPreview() {
 
-      TreeElement pNode = EndpointConfigPresenter.this.display.getParamNodeConfig();
+      TreeElement pNode = EndpointConfigPresenter.this.display.getParamsConfig();
       if (pNode == null) {
-         Window.alert("getParamNodeConfig returned NULL");
+         Window.alert("getParamsConfig returned NULL");
       } else {
          rpcService.getRequestPreview(pNode, new AsyncCallback<String>() {
             public void onSuccess(String result) {
@@ -120,7 +124,7 @@ public class EndpointConfigPresenter implements Presenter {
                if (result == null) {
                   Window.alert("getRequestPreview returned a NULL string ");
                } else {
-                  Window.alert("start:" + result + ":end");
+                  Window.alert(result);
                }
             }
 

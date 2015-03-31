@@ -9,7 +9,7 @@ import org.jboss.wise.client.MainService;
 import org.jboss.wise.gui.ClientConversationBean;
 import org.jboss.wise.gui.Service;
 import org.jboss.wise.gui.tree.element.GroupTreeElement;
-import org.jboss.wise.gui.tree.element.MessageInvocationResult;
+import org.jboss.wise.gui.tree.element.RequestResponse;
 import org.jboss.wise.gui.tree.element.SimpleTreeElement;
 import org.jboss.wise.gui.tree.element.TreeElement;
 import org.jboss.wise.shared.WsdlAddress;
@@ -29,7 +29,7 @@ public class MainServiceImpl extends RemoteServiceServlet implements
 
    public MainServiceImpl() {
 
-      //initAddress();
+      initAddress();
       clientConversationBean = new ClientConversationBean();
    }
 
@@ -63,7 +63,7 @@ public class MainServiceImpl extends RemoteServiceServlet implements
          clientConversationBean.setWsdlUrl(wsdlInfo.getWsdl());
          clientConversationBean.readWsdl();
          List<Service> serviceList = clientConversationBean.getServices();
-         clientConversationBean.debugOprParams();  // debug only
+         //clientConversationBean.debugOprParams();  // debug only
          endpointList.addAll(serviceList);
       } else {
          Window.alert("URL information not specified");
@@ -71,7 +71,7 @@ public class MainServiceImpl extends RemoteServiceServlet implements
       return endpointList;
    }
 
-   public TreeElement getEndpointReflection(String id) {
+   public RequestResponse getEndpointReflection(String id) {
 
       if (id != null) {
          clientConversationBean.setCurrentOperation(id);
@@ -85,7 +85,11 @@ public class MainServiceImpl extends RemoteServiceServlet implements
       return clientConversationBean.myGenerateRequestPreview(rootTreeElement);
    }
 
-   public MessageInvocationResult getPerformInvocationOutputTree(TreeElement rootTreeElement) {
+   public RequestResponse getPerformInvocationOutputTree(TreeElement rootTreeElement, WsdlInfo wsdlInfo) {
+
+      clientConversationBean.setInvocationUrl(wsdlInfo.getWsdl());
+      clientConversationBean.setInvocationUser(wsdlInfo.getUser());
+      clientConversationBean.setInvocationPwd(wsdlInfo.getPassword());
 
       return clientConversationBean.myPerformInvocationOutputTree(rootTreeElement);
    }

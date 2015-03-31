@@ -6,10 +6,11 @@ import java.io.Serializable;
  * User: rsearls
  * Date: 3/26/15
  */
-public class MessageInvocationResult implements Serializable {
+public class RequestResponse implements Serializable {
    private String operationFullName;
    private TreeElement treeElement;
    private String responseMessage;
+   private String errorMessage;
 
    public String getOperationFullName() {
 
@@ -41,4 +42,13 @@ public class MessageInvocationResult implements Serializable {
       this.responseMessage = responseMessage;
    }
 
+   public String getErrorMessage() {
+
+      return errorMessage;
+   }
+
+   public void setErrorMessage(String errorMessage) {
+
+      this.errorMessage = errorMessage;
+   }
 }

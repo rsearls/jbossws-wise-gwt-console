@@ -35,13 +35,14 @@ import org.jboss.wise.core.client.impl.reflection.builder.ReflectionBasedWSDynam
 import org.jboss.wise.core.exception.InvocationException;
 import org.jboss.wise.core.utils.JBossLoggingOutputStream;
 import org.jboss.wise.gui.model.TreeNodeImpl;
-import org.jboss.wise.gui.tree.element.CollectionTreeElement;
+//import org.jboss.wise.gui.tree.element.CollectionTreeElement;
 import org.jboss.wise.gui.tree.element.EnumerationTreeElement;
 import org.jboss.wise.gui.tree.element.GroupTreeElement;
-import org.jboss.wise.gui.tree.element.MessageInvocationResult;
+import org.jboss.wise.gui.tree.element.RequestResponse;
 import org.jboss.wise.gui.tree.element.SimpleTreeElement;
 import org.jboss.wise.gui.tree.element.TreeElement;
 import org.jboss.wise.gui.tree.element.TreeElementFactory;
+import org.jboss.wise.gui.treeElement.ComplexWiseTreeElement;
 import org.jboss.wise.gui.treeElement.EnumerationWiseTreeElement;
 import org.jboss.wise.gui.treeElement.GroupWiseTreeElement;
 import org.jboss.wise.gui.treeElement.LazyLoadWiseTreeElement;
@@ -129,7 +130,7 @@ public class ClientConversationBean implements Serializable {
          }
       }
    }
-
+   /***********
    //- rls start
    public void debugOprParams() {
 
@@ -142,8 +143,8 @@ public class ClientConversationBean implements Serializable {
          }
       }
    }
-
-   public TreeElement myParseOperationParameters(String curOperation) {
+  **********/
+   public RequestResponse myParseOperationParameters(String curOperation) {
 
       try {
          currentOperationFullName = ClientHelper.getOperationFullName(currentOperation, services);
@@ -152,7 +153,13 @@ public class ClientConversationBean implements Serializable {
          e.printStackTrace();
       }
 
-      return generateTreeElementHierarchy((TreeNodeImpl)inputTree);
+      TreeElement treeElement = generateTreeElementHierarchy((TreeNodeImpl)inputTree);
+
+      RequestResponse invResult = new RequestResponse();
+      invResult.setOperationFullName(currentOperationFullName);
+      invResult.setTreeElement(treeElement);
+
+      return invResult;
    }
 
    //------ rls start
@@ -180,14 +187,6 @@ public class ClientConversationBean implements Serializable {
          WiseTreeElement protoType =  ((GroupWiseTreeElement) wte).getPrototype();
 
          TreeElement tElement = genTreeElement(protoType);
-         /**
-         //- tmp work around;
-         CollectionTreeElement cTree = new CollectionTreeElement();
-         cTree.setName(tElement.getName());
-         cTree.setKind(tElement.getKind());
-         cTree.setClassType(tElement.getClassType());
-         gTreeElement.setProtoType(cTree);
-         **/
          gTreeElement.setProtoType(tElement);
 
          String rType = gTreeElement.getCleanClassName(
@@ -204,9 +203,23 @@ public class ClientConversationBean implements Serializable {
          eTreeElement.setClassType(treeElement.getCleanClassName(wte.getClassType().toString()));
 
       } else {
-         ((SimpleTreeElement)treeElement).setValue(((SimpleWiseTreeElement) wte).getValue());
-         treeElement.setClassType(treeElement.getCleanClassName(wte.getClassType().toString()));
+         if (wte instanceof SimpleWiseTreeElement) {
+            ((SimpleTreeElement) treeElement).setValue(((SimpleWiseTreeElement) wte).getValue());
+            //treeElement.setClassType(treeElement.getCleanClassName(wte.getClassType().toString()));
 
+         } else if (wte instanceof ComplexWiseTreeElement) {
+            ComplexWiseTreeElement cNode = (ComplexWiseTreeElement)wte;
+            Iterator<Object> keyIt = cNode.getChildrenKeysIterator();
+            while (keyIt.hasNext()) {
+               WiseTreeElement child = (WiseTreeElement) cNode.getChild(keyIt.next());
+               TreeElement te = genTreeElement(child);
+               te.setId(child.getId().toString());  // rls test id.
+               treeElement.addChild(te);
+               System.out.println("ComplexWiseTreeElement child name: " + child.getName()
+                  + "  te name: " + te.getName() + "  te id: " + te.getId());
+            }
+         }
+         treeElement.setClassType(treeElement.getCleanClassName(wte.getClassType().toString()));
       }
 
       treeElement.setName(wte.getName());
@@ -235,23 +248,36 @@ public class ClientConversationBean implements Serializable {
    }
 
    //-------- rls start
-   public MessageInvocationResult myPerformInvocationOutputTree(TreeElement root) {
+   public RequestResponse myPerformInvocationOutputTree(TreeElement root) {
 
       transferInputValues(root);
       performInvocation();
-      TreeElement treeE = generateOutputTreeElementHierarchy(outputTree);
-      dumpOutputTree();
 
-      MessageInvocationResult invResult = new MessageInvocationResult();
+      TreeElement treeE = null;
+      if (outputTree != null) {
+         treeE = generateOutputTreeElementHierarchy(outputTree);
+         dumpOutputTree();
+      }
+
+      RequestResponse invResult = new RequestResponse();
       invResult.setOperationFullName(getCurrentOperationFullName());
       invResult.setResponseMessage(responseMessage);
       invResult.setTreeElement(treeE);
+      invResult.setErrorMessage(error);
+
+      System.out.println("myPerformInvocationOutputTree responseMessage: " + responseMessage);
+      System.out.println("myPerformInvocationOutputTree error: " + error);
+
       return invResult;
    }
 
 
    //------ rls start
    private TreeElement generateOutputTreeElementHierarchy(TreeNodeImpl tNode) {
+
+      if(tNode == null){
+         System.out.println("generateOutputTreeElementHierarchy tNode is NULL");
+      }
 
       SimpleTreeElement treeElement = new SimpleTreeElement();
       List<TreeElement> children = treeElement.getChildren();
@@ -311,7 +337,21 @@ public class ClientConversationBean implements Serializable {
          eTreeElement.setClassType(treeElement.getCleanClassName(wte.getClassType().toString()));
 
       } else {
-         ((SimpleTreeElement)treeElement).setValue(((SimpleWiseTreeElement) wte).getValue());
+         if (wte instanceof SimpleWiseTreeElement) {
+            ((SimpleTreeElement) treeElement).setValue(((SimpleWiseTreeElement) wte).getValue());
+            //treeElement.setClassType(treeElement.getCleanClassName(wte.getClassType().toString()));
+
+         } else if (wte instanceof ComplexWiseTreeElement) {
+            ComplexWiseTreeElement cNode = (ComplexWiseTreeElement)wte;
+            Iterator<Object> keyIt = cNode.getChildrenKeysIterator();
+            while (keyIt.hasNext()) {
+               WiseTreeElement child = (WiseTreeElement) cNode.getChild(keyIt.next());
+               TreeElement te = genOutputTreeElement(child);
+               treeElement.addChild(te);
+               System.out.println("ComplexWiseTreeElement child name: " + child.getName()
+                  + "  te name: " + te.getName());
+            }
+         }
          treeElement.setClassType(treeElement.getCleanClassName(wte.getClassType().toString()));
 
       }
@@ -381,6 +421,10 @@ public class ClientConversationBean implements Serializable {
             Map<String, Object> params = ClientHelper.processGUIParameters(inputTree);
             ClientHelper.addOUTParameters(params, wsMethod, client);
             final WSEndpoint endpoint = wsMethod.getEndpoint();
+
+            System.out.println("invocation  url: " + invocationUrl + "  user: "
+               + invocationUser + "  password: " + invocationPwd);
+
             endpoint.setTargetUrl(invocationUrl);
             endpoint.setPassword(invocationPwd);
             endpoint.setUsername(invocationUser);
@@ -503,14 +547,14 @@ public class ClientConversationBean implements Serializable {
                   //System.out.println("before: getChildrenKeysIterator size: " + ((GroupWiseTreeElement) wte).getSize());
                   //sb.append("before: getChildrenKeysIterator size: " + ((GroupWiseTreeElement) wte).getSize() + "\n");
 
-                  // A separte key list is required to successfull remove child-key pairs.
+                  // A separate key list is required to successfully remove child-key pairs.
                   Iterator<Object> childKeyIt = wte.getChildrenKeysIterator();
-                  List<Object> objList = new ArrayList<Object>();
+                  List<Object> keyList = new ArrayList<Object>();
                   while (childKeyIt.hasNext()) {
-                     objList.add(childKeyIt.next());
+                     keyList.add(childKeyIt.next());
                   }
 
-                  for(Object key : objList) {
+                  for(Object key : keyList) {
                      Object value = wte.getChild(key);
                      System.out.println("rmChild key: " + key.toString() + "  value: " + value.getClass().getName());
                      sb.append("rmChild key: " + key.toString() + "  value: " + value.getClass().getName() + "\n");
@@ -534,6 +578,44 @@ public class ClientConversationBean implements Serializable {
                   System.out.println("added: getChildrenKeysIterator size: " + ((GroupWiseTreeElement) wte).getSize());
                   sb.append("added: getChildrenKeysIterator size: " + ((GroupWiseTreeElement) wte).getSize() + "\n");
 
+               } else if (TreeElement.COMPLEX.equals(te.getKind())) {
+
+                  // debugging
+                  Iterator<Object> childKeyIt = wte.getChildrenKeysIterator();
+                  while (childKeyIt.hasNext()) {
+                     System.out.println("transferInputValues COMPLEX id: " + childKeyIt.next().toString());
+                  }
+
+                  /*Iterator<Object>*/ childKeyIt = wte.getChildrenKeysIterator();
+                  Map<String, Object> keyMap = new HashMap<String, Object>();
+                  while (childKeyIt.hasNext()) {
+                     Object obj = childKeyIt.next();
+                     keyMap.put(obj.toString(), obj);
+                  }
+
+                  //------
+                  // clear previous values
+                  /*Iterator<Object>*/ childKeyIt = wte.getChildrenKeysIterator();
+                  while (childKeyIt.hasNext()) {
+                     SimpleWiseTreeElement value = (SimpleWiseTreeElement)wte.getChild(childKeyIt.next());
+                     value.setValue(null);
+                     value.setNil(true);
+                  }
+
+                  for (TreeElement teChild : te.getChildren()) {
+                     Object key = keyMap.get(teChild.getId());
+                     SimpleWiseTreeElement value = (SimpleWiseTreeElement)wte.getChild(key);
+                     value.setValue(((SimpleTreeElement) teChild).getValue());
+                     value.setNil(teChild.isNil());
+
+                     System.out.println("transferInputValues COMPLEX transfered name: " + teChild.getName()
+                        + "  value: "  +((SimpleTreeElement) teChild).getValue() + "  id: " + teChild.getId());
+                  }
+
+                  if (!te.getChildren().isEmpty()) {
+                     wte.setNil(false);
+                  }
+
                } else if (TreeElement.ENUMERATION.equals(te.getKind())) {
                   System.out.println("Enum child: arg name: " + te.getName()
                      + "  classType: " + te.getClassType()
@@ -549,6 +631,7 @@ public class ClientConversationBean implements Serializable {
                   }
 
                   ((EnumerationWiseTreeElement)wte).setValue(((EnumerationTreeElement)te).getValue());
+                  wte.setNil(te.isNil());
 
                   System.out.println("EnumerationWiseTreeElement Nil: " + wte.isNil()
                      + "  Nillable: " + wte.isNillable());

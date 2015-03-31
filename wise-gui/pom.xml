@@ -275,9 +275,8 @@
               <include>org/jboss/wise/gui/tree/element/TreeElement.java</include>
               <include>org/jboss/wise/gui/tree/element/SimpleTreeElement.java</include>
               <include>org/jboss/wise/gui/tree/element/GroupTreeElement.java</include>
-              <include>org/jboss/wise/gui/tree/element/CollectionTreeElement.java</include>
               <include>org/jboss/wise/gui/tree/element/EnumerationTreeElement.java</include>
-              <include>org/jboss/wise/gui/tree/element/MessageInvocationResult.java</include>
+              <include>org/jboss/wise/gui/tree/element/RequestResponse.java</include>
            </includes>
         </configuration>
       </plugin>

@@ -11,8 +11,7 @@ import org.jboss.wise.gui.tree.element.TreeElement;
 public class GroupTreeElement extends TreeElement {
 
    private String rawType;
-   private /*Collection*/ TreeElement protoType;
-   //private List<String> values = new ArrayList<String>();
+   private TreeElement protoType;
    private List<TreeElement> valueList = new ArrayList<TreeElement>();
 
    public List<TreeElement> getValueList() {
@@ -34,32 +33,13 @@ public class GroupTreeElement extends TreeElement {
 
       this.rawType = rawType;
    }
-   /**
-   public List<String> getValues() {
 
-      return values;
-   }
-   **/
-   /**
-    * public void addValue(String value) {
-    * <p/>
-    * this.values.add(value);
-    * }
-    * <p/>
-    * public void setValues(List<String> values) {
-    * <p/>
-    * this.values = values;
-    * }
-    * *
-    */
-
-
-   public /*Collection*/ TreeElement getProtoType() {
+   public TreeElement getProtoType() {
 
       return protoType;
    }
 
-   public void setProtoType(/*Collection*/ TreeElement protoType) {
+   public void setProtoType(TreeElement protoType) {
 
       this.protoType = protoType;
    }
