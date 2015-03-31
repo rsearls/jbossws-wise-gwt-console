@@ -20,8 +20,8 @@ import java.util.List;
  * User: rsearls
  * Date: 2/18/15
  */
-@ManagedBean
-@ConversationScoped
+//@ManagedBean
+//@ConversationScoped
 public class WsdlFinder implements Serializable {
 
    private List<String> wsdlList;
@@ -53,6 +53,7 @@ public class WsdlFinder implements Serializable {
    }
 
    public List<String> getWsdlList() {
+
       return wsdlList;
    }
 

@@ -99,6 +99,11 @@ public class ClientConversationBean implements Serializable {
       //restart conversation
       //conversation.end();
       //conversation.begin();
+      /**
+      System.out.println("---------- start test ----------");
+      WsdlFinder wsdlFinder = new WsdlFinder(); // rls test
+      System.out.println("---------- end   test ----------");
+      **/
       try {
          System.out.println("## wsdlUrl: " + getWsdlUrl());
          WSDynamicClientBuilder builder = new ReflectionBasedWSDynamicClientBuilder().verbose(true).messageStream(ps)

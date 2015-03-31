@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ JBoss, Home of Professional Open Source.
+  ~ Copyright 2014, Red Hat, Inc., and individual contributors
+  ~ as indicated by the @author tags. See the copyright.txt file in the
+  ~ distribution for a full listing of individual contributors.
+  ~
+  ~ This is free software; you can redistribute it and/or modify it
+  ~ under the terms of the GNU Lesser General Public License as
+  ~ published by the Free Software Foundation; either version 2.1 of
+  ~ the License, or (at your option) any later version.
+  ~
+  ~ This software is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  ~ Lesser General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Lesser General Public
+  ~ License along with this software; if not, write to the Free
+  ~ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+   <modelVersion>4.0.0</modelVersion>
+
+   <groupId>org.jboss.wise</groupId>
+   <artifactId>wise-parent</artifactId>
+   <packaging>pom</packaging>
+   <version>1.0.0</version>
+   <name>Wise web display parent project</name>
+   <url>http://www.jboss.org/wise</url>
+
+   <scm>
+      <connection>scm:svn:http://anonsvn.jboss.org/repos/wise/webgui/trunk</connection>
+      <developerConnection>scm:svn:https://svn.jboss.org/repos/wise/webgui/trunk</developerConnection>
+      <url>http://fisheye.jboss.org/viewrep/Wise/webgui/trunk</url>
+   </scm>
+
+   <licenses>
+      <license>
+         <name>Apache License, Version 2.0</name>
+         <distribution>repo</distribution>
+         <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+      </license>
+   </licenses>
+   <inceptionYear>2013</inceptionYear>
+
+   <issueManagement>
+      <system>jira</system>
+      <url>https://jira.jboss.org/jira/browse/WISE</url>
+   </issueManagement>
+
+   <modules>
+      <module>wise-gui</module>
+      <module>wise-gwt</module>
+   </modules>
+
+   <properties>
+      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+      <!-- JBoss dependency versions -->
+      <version.org.jboss.as.plugins.maven.plugin>7.3.Final</version.org.jboss.as.plugins.maven.plugin>
+      <version.org.wildfly.plugins.maven.plugin>1.0.2.Final</version.org.wildfly.plugins.maven.plugin>
+      <version.org.jboss.spec.jboss.javaee.6.0>3.0.0.Final</version.org.jboss.spec.jboss.javaee.6.0>
+
+      <version.org.richfaces>4.5.2.Final</version.org.richfaces>
+      <version.wise.core>2.1.0-SNAPSHOT</version.wise.core>
+
+      <!-- other plugin versions -->
+      <version.compiler.plugin>2.3.1</version.compiler.plugin>
+
+      <!-- maven-compiler-plugin -->
+      <maven.compiler.target>1.6</maven.compiler.target>
+      <maven.compiler.source>1.6</maven.compiler.source>
+      <gwtVersion>2.5.0</gwtVersion>
+      <jboss-as-controller-client-version>7.1.1.Final</jboss-as-controller-client-version>
+      <version.org.jboss.spec.jboss.javaee.6.0>3.0.0.Final</version.org.jboss.spec.jboss.javaee.6.0>
+      <javax.validation.version>1.0.0.GA</javax.validation.version>
+      <jboss.logging.version>3.1.0.GA</jboss.logging.version>
+      <junit.version>4.7</junit.version>
+      <cdi.api.version>1.2</cdi.api.version>
+      <wise.gwtGui.sources.version>1.0</wise.gwtGui.sources.version>
+      <cxf.tools.version>3.0.4</cxf.tools.version>
+      <wise.gui.version>2.1-SNAPSHOT</wise.gui.version>
+   </properties>
+
+   <dependencyManagement>
+      <dependencies>
+
+         <dependency>
+            <groupId>org.jboss.spec</groupId>
+            <artifactId>jboss-javaee-6.0</artifactId>
+            <version>${version.org.jboss.spec.jboss.javaee.6.0}</version>
+            <!-- -->
+            <type>pom</type>
+            <scope>import</scope>
+
+         </dependency>
+         <dependency>
+            <groupId>org.richfaces</groupId>
+            <artifactId>richfaces</artifactId>
+            <version>${version.org.richfaces}</version>
+         </dependency>
+
+         <dependency>
+            <groupId>org.jboss.wise</groupId>
+            <artifactId>wise-core-cxf</artifactId>
+            <version>${version.wise.core}</version>
+            <exclusions>
+               <exclusion>
+                  <groupId>org.jboss.ws</groupId>
+                  <artifactId>jbossws-common</artifactId>
+               </exclusion>
+               <exclusion>
+                  <groupId>org.jboss.ws</groupId>
+                  <artifactId>jbossws-spi</artifactId>
+               </exclusion>
+               <exclusion>
+                  <groupId>org.jboss.ws.cxf</groupId>
+                  <artifactId>jbossws-cxf-client</artifactId>
+               </exclusion>
+               <exclusion>
+                  <groupId>xalan</groupId>
+                  <artifactId>xalan</artifactId>
+               </exclusion>
+               <exclusion>
+                  <groupId>wsdl4j</groupId>
+                  <artifactId>wsdl4j</artifactId>
+               </exclusion>
+               <exclusion>
+                  <groupId>log4j</groupId>
+                  <artifactId>log4j</artifactId>
+               </exclusion>
+               <exclusion>
+                  <groupId>org.freemarker</groupId>
+                  <artifactId>freemarker</artifactId>
+               </exclusion>
+               <exclusion>
+                  <groupId>javassist</groupId>
+                  <artifactId>javassist</artifactId>
+               </exclusion>
+               <exclusion>
+                  <groupId>org.milyn</groupId>
+                  <artifactId>milyn-smooks-javabean</artifactId>
+               </exclusion>
+               <exclusion>
+                  <groupId>org.milyn</groupId>
+                  <artifactId>milyn-smooks-validation</artifactId>
+               </exclusion>
+               <exclusion>
+                  <groupId>com.thoughtworks.xstream</groupId>
+                  <artifactId>xstream</artifactId>
+               </exclusion>
+               <exclusion>
+                  <groupId>org.mvel</groupId>
+                  <artifactId>mvel2</artifactId>
+               </exclusion>
+               <exclusion>
+                  <groupId>dtdparser</groupId>
+                  <artifactId>dtdparser</artifactId>
+               </exclusion>
+            </exclusions>
+         </dependency>
+
+         <!-- rls dmr api -->
+         <dependency>
+            <groupId>org.jboss.as</groupId>
+            <artifactId>jboss-as-controller-client</artifactId>
+            <version>${jboss-as-controller-client-version}</version>
+         </dependency>
+
+         <dependency>
+            <groupId>com.google.gwt</groupId>
+            <artifactId>gwt-servlet</artifactId>
+            <version>${gwtVersion}</version>
+            <scope>runtime</scope>
+         </dependency>
+         <dependency>
+            <groupId>com.google.gwt</groupId>
+            <artifactId>gwt-user</artifactId>
+            <version>${gwtVersion}</version>
+            <scope>provided</scope>
+         </dependency>
+         <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <version>${javax.validation.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <version>${javax.validation.version}</version>
+         </dependency>
+
+         <dependency>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging</artifactId>
+            <version>${jboss.logging.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+         </dependency>
+
+         <dependency>
+            <groupId>org.jboss.wise.gui</groupId>
+            <artifactId>wise-gui</artifactId>
+            <version>${wise.gui.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-tools-wsdlto-core</artifactId>
+            <version>${cxf.tools.version}</version>
+         </dependency>
+         <dependency>
+            <artifactId>wise-gui</artifactId>
+            <groupId>wise-gwtGui-sources</groupId>
+            <version>${wise.gwtGui.sources.version}</version>
+         </dependency>
+
+         <dependency>
+            <groupId>javax.enterprise</groupId>
+            <artifactId>cdi-api</artifactId>
+            <version>${cdi.api.version}</version>
+         </dependency>
+
+      </dependencies>
+
+   </dependencyManagement>
+
+   <build>
+      <pluginManagement>
+         <plugins>
+            <plugin>
+               <artifactId>maven-compiler-plugin</artifactId>
+               <version>${version.compiler.plugin}</version>
+               <configuration>
+                  <source>${maven.compiler.source}</source>
+                  <target>${maven.compiler.target}</target>
+               </configuration>
+            </plugin>
+         </plugins>
+      </pluginManagement>
+   </build>
+
+</project>

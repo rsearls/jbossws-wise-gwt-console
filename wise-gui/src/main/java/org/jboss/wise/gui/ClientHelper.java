@@ -46,7 +46,6 @@ import org.jboss.wise.gui.tree.element.TreeElement;
 import org.jboss.wise.gui.treeElement.*;
 import org.jboss.wise.gui.model.TreeNodeImpl;
 
-import org.codehaus.jackson.map.ObjectMapper;
 
 public class ClientHelper implements Serializable {
 
