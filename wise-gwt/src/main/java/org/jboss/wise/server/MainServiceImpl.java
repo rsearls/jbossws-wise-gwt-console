@@ -29,7 +29,7 @@ public class MainServiceImpl extends RemoteServiceServlet implements
 
    public MainServiceImpl() {
 
-      initAddress();
+      //initAddress();
       clientConversationBean = new ClientConversationBean();
    }
 
