@@ -73,49 +73,6 @@ public class ClientHelper implements Serializable {
          if (parameter.getMode() != WebParam.Mode.OUT) {
             WiseTreeElement wte = builder.buildTreeFromType(parameter.getType(), parameter.getName(),
                null, !rpcLit);
-            /****
-            //- rls test
-            System.out.println("-## WiseTreeElement: " + wte.getClass().getName());
-            System.out.println("-#### name: " + wte.getName() + "  type: " + wte.getType()
-               + "  id: " + wte.getId()
-               + "  classType: " + wte.getClassType().toString());
-
-            if (wte instanceof EnumerationWiseTreeElement) {
-               Map<String, String> eValuesMap = ((EnumerationWiseTreeElement)wte).getValidValue();
-               if (eValuesMap != null) {
-                  Set<String> eSet = eValuesMap.keySet();
-                  for(String s : eSet) {
-                     System.out.println("--- enum value: " + s);
-                  }
-               }
-            }
-
-            Iterator<Object> keys = wte.getChildrenKeysIterator();
-            if (keys != null) {
-               while (keys.hasNext()) {
-                  WiseTreeElement tNode = (WiseTreeElement)wte.getChild(keys.next());
-                  if (tNode != null) {
-                     //String typeString = ( instanceof Class<?> ? ((Class<?>) type).getSimpleName() : type.toString());
-                     System.out.println("-@@ TreeNode: " + tNode.getClass().getName());
-                     System.out.println("-@@@@ name: " + tNode.getName() + "  type: "
-                        + tNode.getType() + "  id: " + wte.getId() + "  classType: "
-                        + tNode.getClassType().toString());
-
-                     if (tNode instanceof EnumerationWiseTreeElement) {
-                        Map<String, String> eValuesMap = ((EnumerationWiseTreeElement)tNode).getValidValue();
-                        if (eValuesMap != null) {
-                           Set<String> eSet = eValuesMap.keySet();
-                           for(String s : eSet) {
-                              System.out.println("-+++ enum value: " + s);
-                           }
-                        }
-                     }
-                  } else {
-                     System.out.println("-@@@@ TreeNode is NULL");
-                  }
-               }
-            }
-            //- *****/
             rootElement.addChild(wte.getId(), wte);
          }
       }
@@ -183,7 +140,6 @@ public class ClientHelper implements Serializable {
                operation.setFullName(sb.toString());
                operations.add(operation);
 
-               // rls added
                operation.setCurrentOperation(service.getName()
                   + ";" + port.getName()
                   + ";" + operation.getName());
@@ -193,27 +149,6 @@ public class ClientHelper implements Serializable {
       return services;
    }
 
-   //- rls start
-   public static List<String> getOperationList(List<Service> services) {
-      ArrayList<String> oList = new ArrayList<String>();
-      if (services != null) {
-         for (Service s : services) {
-            for (Port p : s.getPorts()) {
-               for (Operation o : p.getOperations()) {
-                  StringBuilder sb = new StringBuilder();
-                  sb.append(s.getName());
-                  sb.append(";");
-                  sb.append(p.getName());
-                  sb.append(";");
-                  sb.append(o.getName());
-                  oList.add(sb.toString());
-               }
-            }
-         }
-      }
-      return oList;
-   }
-   //- rls end
    public static String getFirstGuiOperation(List<Service> services) {
       if (services == null) {
          return null;
