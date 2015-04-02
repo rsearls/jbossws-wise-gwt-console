@@ -25,7 +25,8 @@ public class WsdlFinder implements Serializable {
     private final String[] testData = new String [] {
         "http://localhost:8080/jaxws-jbws1798/Service?wsdl",
         "http://localhost:8080/jaxws-jbws2259?wsdl",
-        "http://localhost:8080/schemasInWeirdPlaceFromSrc/SayHiImpl?wsdl"
+        "http://localhost:8080/schemasInWeirdPlaceFromSrc/SayHiImpl?wsdl",
+        "http://localhost:8080/wise-test-datatypes?wsdl"
     };
 
     public WsdlFinder() {

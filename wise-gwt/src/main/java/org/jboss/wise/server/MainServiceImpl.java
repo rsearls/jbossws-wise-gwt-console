@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import org.jboss.wise.client.MainService;
 import org.jboss.wise.gui.ClientConversationBean;
+import org.jboss.wise.gui.GWTClientConversationBean;
 import org.jboss.wise.gui.Service;
 import org.jboss.wise.gui.tree.element.GroupTreeElement;
 import org.jboss.wise.gui.tree.element.RequestResponse;
@@ -25,12 +26,12 @@ public class MainServiceImpl extends RemoteServiceServlet implements
 
    private final HashMap<String, WsdlAddress> address = new HashMap<String, WsdlAddress>();
    private ArrayList<WsdlAddress> wsdlAddress = new ArrayList<WsdlAddress>();
-   private ClientConversationBean clientConversationBean;
+   private GWTClientConversationBean gwtClientConversationBean;
 
    public MainServiceImpl() {
 
       initAddress();
-      clientConversationBean = new ClientConversationBean();
+      gwtClientConversationBean = new GWTClientConversationBean();
    }
 
    private void initAddress() {
@@ -58,12 +59,11 @@ public class MainServiceImpl extends RemoteServiceServlet implements
 
       ArrayList<Service> endpointList = new ArrayList<Service>();
       if (wsdlInfo != null) {
-         clientConversationBean.setWsdlUser(wsdlInfo.getUser());
-         clientConversationBean.setWsdlPwd(wsdlInfo.getPassword());
-         clientConversationBean.setWsdlUrl(wsdlInfo.getWsdl());
-         clientConversationBean.readWsdl();
-         List<Service> serviceList = clientConversationBean.getServices();
-         //clientConversationBean.debugOprParams();  // debug only
+         gwtClientConversationBean.setWsdlUser(wsdlInfo.getUser());
+         gwtClientConversationBean.setWsdlPwd(wsdlInfo.getPassword());
+         gwtClientConversationBean.setWsdlUrl(wsdlInfo.getWsdl());
+         gwtClientConversationBean.readWsdl();
+         List<Service> serviceList = gwtClientConversationBean.getServices();
          endpointList.addAll(serviceList);
       } else {
          Window.alert("URL information not specified");
@@ -74,24 +74,24 @@ public class MainServiceImpl extends RemoteServiceServlet implements
    public RequestResponse getEndpointReflection(String id) {
 
       if (id != null) {
-         clientConversationBean.setCurrentOperation(id);
-         return clientConversationBean.myParseOperationParameters(id);
+         gwtClientConversationBean.setCurrentOperation(id);
+         return gwtClientConversationBean.parseOperationParameters(id);
       }
       return null;
    }
 
    public String getRequestPreview(TreeElement rootTreeElement) {
 
-      return clientConversationBean.myGenerateRequestPreview(rootTreeElement);
+      return gwtClientConversationBean.generateRequestPreview(rootTreeElement);
    }
 
    public RequestResponse getPerformInvocationOutputTree(TreeElement rootTreeElement, WsdlInfo wsdlInfo) {
 
-      clientConversationBean.setInvocationUrl(wsdlInfo.getWsdl());
-      clientConversationBean.setInvocationUser(wsdlInfo.getUser());
-      clientConversationBean.setInvocationPwd(wsdlInfo.getPassword());
+      gwtClientConversationBean.setInvocationUrl(wsdlInfo.getWsdl());
+      gwtClientConversationBean.setInvocationUser(wsdlInfo.getUser());
+      gwtClientConversationBean.setInvocationPwd(wsdlInfo.getPassword());
 
-      return clientConversationBean.myPerformInvocationOutputTree(rootTreeElement);
+      return gwtClientConversationBean.performInvocation(rootTreeElement);
    }
 
    private String dumpTree(TreeElement root) {
