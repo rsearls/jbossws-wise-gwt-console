@@ -9,6 +9,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.HasWidgets;
 import com.google.gwt.user.client.ui.Widget;
 import org.jboss.wise.client.MainServiceAsync;
+import org.jboss.wise.client.event.BackEvent;
 import org.jboss.wise.client.event.CancelledEvent;
 import org.jboss.wise.client.event.InvocationEvent;
 import org.jboss.wise.gui.tree.element.RequestResponse;
@@ -28,11 +29,14 @@ public class EndpointConfigPresenter implements Presenter {
 
       HasClickHandlers getCancelButton();
 
+      HasClickHandlers getBackButton();
+
       Widget asWidget();
 
       void setData(RequestResponse data);
 
       TreeElement getParamsConfig();
+
       WsdlInfo getWsdlInfo();
    }
 
@@ -91,6 +95,13 @@ public class EndpointConfigPresenter implements Presenter {
          public void onClick(ClickEvent event) {
 
             eventBus.fireEvent(new CancelledEvent());
+         }
+      });
+
+      this.display.getBackButton().addClickHandler(new ClickHandler() {
+         public void onClick(ClickEvent event) {
+
+            eventBus.fireEvent(new BackEvent());
          }
       });
    }

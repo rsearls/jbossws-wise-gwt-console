@@ -47,6 +47,7 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
    private final Button invokeButton;
    private final Button previewButton;
    private final Button cancelButton;
+   private final Button backButton;
    private TextBox debugBox = new TextBox();
 
    private LinkedHashMap<Widget, TreeElement> paramWidgetTable =
@@ -79,9 +80,11 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
       invokeButton = new Button("Invoke");
       cancelButton = new Button("Cancel");
       previewButton = new Button("Preview Message");
-      menuPanel.add(cancelButton);
+      backButton = new Button("Back");
+      menuPanel.add(backButton);
       menuPanel.add(previewButton);
       menuPanel.add(invokeButton);
+      menuPanel.add(cancelButton);
       baseVerticalPanel.add(menuPanel);
 
       contentDetailsDecorator.add(baseVerticalPanel);
@@ -101,6 +104,11 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
    public HasClickHandlers getCancelButton() {
 
       return cancelButton;
+   }
+
+   public HasClickHandlers getBackButton() {
+
+      return backButton;
    }
 
    public Widget asWidget() {

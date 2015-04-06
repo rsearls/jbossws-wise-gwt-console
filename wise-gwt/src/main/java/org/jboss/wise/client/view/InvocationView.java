@@ -22,6 +22,7 @@ import org.jboss.wise.gui.tree.element.TreeElement;
  */
 public class InvocationView extends Composite implements InvocationPresenter.Display {
    private final Button backButton;
+   private final Button cancelButton;
    private final Button viewMessageButton;
    private Tree rootNode = null;
    private String responseMessage;
@@ -41,8 +42,10 @@ public class InvocationView extends Composite implements InvocationPresenter.Dis
       HorizontalPanel menuPanel = new HorizontalPanel();
       backButton = new Button("Back");
       viewMessageButton = new Button("View Message");
+      cancelButton = new Button("Cancel");
       menuPanel.add(backButton);
       menuPanel.add(viewMessageButton);
+      menuPanel.add(cancelButton);
       contentDetailsPanel.add(menuPanel);
       contentDetailsDecorator.add(contentDetailsPanel);
    }
@@ -55,6 +58,11 @@ public class InvocationView extends Composite implements InvocationPresenter.Dis
    public HasClickHandlers getBackButton() {
 
       return backButton;
+   }
+
+   public HasClickHandlers getCancelButton() {
+
+      return cancelButton;
    }
 
    public HasClickHandlers getViewMessageButton() {

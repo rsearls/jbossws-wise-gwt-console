@@ -11,6 +11,7 @@ import com.google.gwt.user.client.ui.Tree;
 import com.google.gwt.user.client.ui.Widget;
 import org.jboss.wise.client.MainServiceAsync;
 import org.jboss.wise.client.event.BackEvent;
+import org.jboss.wise.client.event.CancelledEvent;
 import org.jboss.wise.gui.tree.element.RequestResponse;
 import org.jboss.wise.gui.tree.element.TreeElement;
 import org.jboss.wise.shared.WsdlInfo;
@@ -22,6 +23,8 @@ import org.jboss.wise.shared.WsdlInfo;
 public class InvocationPresenter implements Presenter {
    public interface Display {
       HasClickHandlers getBackButton();
+
+      HasClickHandlers getCancelButton();
 
       HasClickHandlers getViewMessageButton();
 
@@ -81,6 +84,14 @@ public class InvocationPresenter implements Presenter {
             Window.alert(display.getResponseMessage());
          }
       });
+
+      this.display.getCancelButton().addClickHandler(new ClickHandler() {
+         public void onClick(ClickEvent event) {
+
+            eventBus.fireEvent(new CancelledEvent());
+         }
+      });
+
 
    }
 

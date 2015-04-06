@@ -3,6 +3,7 @@ package org.jboss.wise.client;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerManager;
+import java.util.HashMap;
 import org.jboss.wise.client.event.BackEvent;
 import org.jboss.wise.client.event.BackEventHandler;
 import org.jboss.wise.client.event.CancelledEvent;
@@ -31,12 +32,14 @@ public class AppController implements Presenter, ValueChangeHandler<String> {
    private final HandlerManager eventBus;
    private final MainServiceAsync rpcService;
    private HasWidgets container;
+   private HashMap<String, Presenter> presenterMap = new HashMap<String, Presenter>();
 
    public AppController(MainServiceAsync rpcService, HandlerManager eventBus) {
 
       this.eventBus = eventBus;
       this.rpcService = rpcService;
       bind();
+      initPresenters();
    }
 
    private void bind() {
@@ -84,10 +87,16 @@ public class AppController implements Presenter, ValueChangeHandler<String> {
          });
    }
 
+   private void initPresenters(){
+      presenterMap.clear();
+      presenterMap.put("list", new WsdlPresenter(rpcService, eventBus, new WsdlView()));
+   }
+
    private void doSendWsdl(WsdlInfo wsdlInfo) {
 
       History.newItem("endpoints", false);
       Presenter presenter = new EndpointsPresenter(rpcService, eventBus, new EndpointsView(), wsdlInfo);
+      presenterMap.put("endpoints", presenter);
       presenter.go(container);
    }
 
@@ -95,6 +104,7 @@ public class AppController implements Presenter, ValueChangeHandler<String> {
 
       History.newItem("config", false);
       Presenter presenter = new EndpointConfigPresenter(rpcService, eventBus, new EndpointConfigView(), id);
+      presenterMap.put("config", presenter);
       presenter.go(container);
    }
 
@@ -102,18 +112,21 @@ public class AppController implements Presenter, ValueChangeHandler<String> {
       History.newItem("invoke", false);
       Presenter presenter = new InvocationPresenter(rpcService, eventBus, new InvocationView(),
          treeElement, wsdlInfo);
+      presenterMap.put("invoke", presenter);
       presenter.go(container);
    }
 
    private void doCancelled() {
 
-      History.newItem("list");
-      //History.back();   // must reset prev data.
+      initPresenters();
+      History.newItem("list", false);
+      Presenter presenter = presenterMap.get("list");
+      presenter.go(container);
    }
 
    private void doBack() {
 
-      History.newItem("list");
+      History.back();
    }
 
    public void go(final HasWidgets container) {
@@ -135,14 +148,9 @@ public class AppController implements Presenter, ValueChangeHandler<String> {
          Presenter presenter = null;
 
          if (token.equals("list")) {
-            presenter = new WsdlPresenter(rpcService, eventBus, new WsdlView());
-         } else if (token.equals("endpoints")) {
-            presenter = new EndpointsPresenter(rpcService, eventBus, new EndpointsView());
-         } else if (token.equals("config")) {
-            presenter = new EndpointConfigPresenter(rpcService, eventBus, new EndpointConfigView());
-         } else if (token.equals("invoke")) {
-            presenter = new InvocationPresenter(rpcService, eventBus, new InvocationView());
+            initPresenters();
          }
+         presenter = presenterMap.get(token);
 
          if (presenter != null) {
             presenter.go(container);
