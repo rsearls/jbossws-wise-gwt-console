@@ -34,12 +34,15 @@ public class InvocationView extends Composite implements InvocationPresenter.Dis
       initWidget(contentDetailsDecorator);
 
       VerticalPanel contentDetailsPanel = new VerticalPanel();
+      contentDetailsPanel.setStyleName("base-panel");
       contentDetailsPanel.setWidth("100%");
       rootNode = new Tree();
       rootNode.addItem(new TreeItem(SafeHtmlUtils.fromString("")));
+      rootNode.setStyleName("invoke-tree");
       contentDetailsPanel.add(rootNode);
 
       HorizontalPanel menuPanel = new HorizontalPanel();
+      menuPanel.setStyleName("menu-panel");
       backButton = new Button("Back");
       viewMessageButton = new Button("View Message");
       cancelButton = new Button("Cancel");

@@ -61,11 +61,13 @@ public class WsdlView extends Composite implements WsdlPresenter.Display {
    private VerticalPanel createInputDetails() {
 
       VerticalPanel contentDetailsPanel = new VerticalPanel();
+      contentDetailsPanel.addStyleName("base-panel");
       contentDetailsPanel.setWidth("100%");
       detailsTable = new FlexTable();
+      detailsTable.addStyleName("wsdl-table");
       detailsTable.setCellSpacing(0);
       detailsTable.setWidth("100%");
-      detailsTable.addStyleName("contacts-ListContainer");
+      //detailsTable.addStyleName("contacts-ListContainer");
       detailsTable.getColumnFormatter().addStyleName(1, "add-contact-input");
       wsdlAddress = new TextBox();
       wsdlAddress.setWidth("28em");
@@ -88,6 +90,7 @@ public class WsdlView extends Composite implements WsdlPresenter.Display {
    private HorizontalPanel createMenuPanel() {
 
       HorizontalPanel menuPanel = new HorizontalPanel();
+      menuPanel.addStyleName("menu-panel");
       sendButton = new Button("Read WSDL");
       menuPanel.add(sendButton);
       return menuPanel;

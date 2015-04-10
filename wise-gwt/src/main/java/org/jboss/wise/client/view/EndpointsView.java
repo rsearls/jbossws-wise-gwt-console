@@ -36,12 +36,15 @@ public class EndpointsView extends Composite implements EndpointsPresenter.Displ
       initWidget(contentDetailsDecorator);
 
       VerticalPanel contentDetailsPanel = new VerticalPanel();
+      contentDetailsPanel.setStyleName("base-panel");
       contentDetailsPanel.setWidth("100%");
       rootNode = new Tree();
+      rootNode.setStyleName("endpts-list-tree");
       rootNode.addItem(new TreeItem(SafeHtmlUtils.fromString("")));
       contentDetailsPanel.add(rootNode);
 
       HorizontalPanel menuPanel = new HorizontalPanel();
+      menuPanel.setStyleName("menu-panel");
       backButton = new Button("Back");
       menuPanel.add(backButton);
       contentDetailsPanel.add(menuPanel);

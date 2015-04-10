@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import org.jboss.wise.client.MainService;
-import org.jboss.wise.gui.ClientConversationBean;
 import org.jboss.wise.gui.GWTClientConversationBean;
 import org.jboss.wise.gui.Service;
 import org.jboss.wise.gui.tree.element.GroupTreeElement;

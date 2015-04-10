@@ -64,4 +64,17 @@ td.contacts-ListName {
    height: 100%;
    width: 100%;
  }
- 
+
+.gwt-VerticalPanel .menu-panel {
+    background-color: yellow;
+}
+
+.gwt-VerticalPanel .base-panel {
+    background-color: mediumaquamarine;
+    border: solid;
+    border-color: black;
+}
+
+.gwt-Button {
+    background-color: blueviolet;
+}

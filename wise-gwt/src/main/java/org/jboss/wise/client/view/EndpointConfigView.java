@@ -72,11 +72,14 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
 
       baseVerticalPanel = new VerticalPanel();
       baseVerticalPanel.setWidth("100%");
+      baseVerticalPanel.setStyleName("base-panel");
 
       FlexTable fTable = createCredentialOverRidePanel();
+      fTable.setStyleName("endpt-config-table");
       baseVerticalPanel.add(fTable);
 
       HorizontalPanel menuPanel = new HorizontalPanel();
+      menuPanel.setStyleName("menu-panel");
       invokeButton = new Button("Invoke");
       cancelButton = new Button("Cancel");
       previewButton = new Button("Preview Message");
