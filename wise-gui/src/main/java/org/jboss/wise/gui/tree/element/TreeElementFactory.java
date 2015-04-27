@@ -15,7 +15,10 @@ public class TreeElementFactory {
    public static TreeElement create (WiseTreeElement wte) {
       TreeElement treeElement;
 
-      if (WiseTreeElement.GROUP.equals(wte.getKind())) {
+      if (WiseTreeElement.COMPLEX.equals(wte.getKind())) {
+         treeElement = new ComplexTreeElement();
+
+      } else if (WiseTreeElement.GROUP.equals(wte.getKind())) {
          treeElement = new GroupTreeElement();
 
       } else if (WiseTreeElement.ENUMERATION.equals(wte.getKind())) {

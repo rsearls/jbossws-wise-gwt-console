@@ -9,7 +9,9 @@ import java.util.Map;
 
 import org.jboss.wise.core.client.builder.WSDynamicClientBuilder;
 import org.jboss.wise.core.client.impl.reflection.builder.ReflectionBasedWSDynamicClientBuilder;
+import org.jboss.wise.gui.model.TreeNode;
 import org.jboss.wise.gui.model.TreeNodeImpl;
+import org.jboss.wise.gui.tree.element.ComplexTreeElement;
 import org.jboss.wise.gui.tree.element.EnumerationTreeElement;
 import org.jboss.wise.gui.tree.element.GroupTreeElement;
 import org.jboss.wise.gui.tree.element.RequestResponse;
@@ -19,6 +21,7 @@ import org.jboss.wise.gui.tree.element.TreeElementFactory;
 import org.jboss.wise.gui.treeElement.ComplexWiseTreeElement;
 import org.jboss.wise.gui.treeElement.EnumerationWiseTreeElement;
 import org.jboss.wise.gui.treeElement.GroupWiseTreeElement;
+import org.jboss.wise.gui.treeElement.LazyLoadWiseTreeElement;
 import org.jboss.wise.gui.treeElement.SimpleWiseTreeElement;
 import org.jboss.wise.gui.treeElement.WiseTreeElement;
 
@@ -31,16 +34,14 @@ public class GWTClientConversationBean extends ClientConversationBean {
    private Map<String, WiseTreeElement> treeElementMap =
       new HashMap<String, WiseTreeElement>();
 
+   private HashMap<String, WiseTreeElement> lazyLoadMap = new HashMap<String, WiseTreeElement>();
+
+
    @Override
    public void readWsdl() {
 
       cleanup();
 
-      /**
-       System.out.println("---------- start test ----------");
-       WsdlFinder wsdlFinder = new WsdlFinder(); // rls test
-       System.out.println("---------- end   test ----------");
-       **/
       try {
          System.out.println("--## wsdlUrl: " + getWsdlUrl());
          WSDynamicClientBuilder builder = new ReflectionBasedWSDynamicClientBuilder()
@@ -91,7 +92,7 @@ public class GWTClientConversationBean extends ClientConversationBean {
          e.printStackTrace();
       }
 
-      TreeElement treeElement = generateTreeElementHierarchy((TreeNodeImpl)getInputTree());
+      TreeElement treeElement = wiseDataPostProcess((TreeNodeImpl)getInputTree());
 
       RequestResponse invResult = new RequestResponse();
       invResult.setOperationFullName(getCurrentOperationFullName());
@@ -101,21 +102,20 @@ public class GWTClientConversationBean extends ClientConversationBean {
    }
 
    public String generateRequestPreview(TreeElement rootTreeElement) {
-      String str = transferInputValues(rootTreeElement);
+      userDataPostProcess(rootTreeElement);
       generateRequestPreview();
       return getRequestPreview();
    }
 
    public RequestResponse performInvocation(TreeElement root) {
-
-      transferInputValues(root);
+      userDataPostProcess(root);
       performInvocation();
 
       TreeElement treeE = null;
       TreeNodeImpl outputTree = getOutputTree();
       if (outputTree != null) {
-         treeE = generateOutputTreeElementHierarchy(outputTree);
-         dumpOutputTree();
+         treeE = wiseOutputPostProcess(outputTree);
+         //dumpOutputTree();
       }
 
       RequestResponse invResult = new RequestResponse();
@@ -124,14 +124,17 @@ public class GWTClientConversationBean extends ClientConversationBean {
       invResult.setTreeElement(treeE);
       invResult.setErrorMessage(getError());
 
-      //System.out.println("myPerformInvocationOutputTree responseMessage: " + getResponseMessage());
-      //System.out.println("myPerformInvocationOutputTree error: " + getError());
-
       return invResult;
    }
 
+   /**
+    * Generate GWT objects that correspond to WISE objects
+    * @param tNode
+    * @return
+    */
+   private TreeElement wiseDataPostProcess(TreeNodeImpl tNode) {
 
-   private TreeElement generateTreeElementHierarchy(TreeNodeImpl tNode) {
+      lazyLoadMap.clear();
 
       SimpleTreeElement treeElement = new SimpleTreeElement();
       List<TreeElement> children = treeElement.getChildren();
@@ -139,14 +142,14 @@ public class GWTClientConversationBean extends ClientConversationBean {
       Iterator<Object> keyIt = tNode.getChildrenKeysIterator();
       while (keyIt.hasNext()) {
          WiseTreeElement child = (WiseTreeElement) tNode.getChild(keyIt.next());
-         TreeElement te = genTreeElement(child);
+         TreeElement te = wiseDataTransfer(child);
          children.add(te);
       }
 
       return treeElement;
    }
 
-   private TreeElement genTreeElement(WiseTreeElement wte) {
+   private TreeElement wiseDataTransfer(WiseTreeElement wte) {
 
       TreeElement treeElement = TreeElementFactory.create(wte);
 
@@ -154,12 +157,26 @@ public class GWTClientConversationBean extends ClientConversationBean {
          GroupTreeElement gTreeElement = (GroupTreeElement)treeElement;
          WiseTreeElement protoType =  ((GroupWiseTreeElement) wte).getPrototype();
 
-         TreeElement tElement = genTreeElement(protoType);
+         TreeElement tElement = wiseDataTransfer(protoType);
          gTreeElement.setProtoType(tElement);
 
          String rType = gTreeElement.getCleanClassName(
             ((ParameterizedType)wte.getClassType()).getRawType().toString());
          gTreeElement.setClassType(rType);
+
+
+      } else if (wte instanceof ComplexWiseTreeElement) {
+         ComplexWiseTreeElement cNode = (ComplexWiseTreeElement)wte;
+         Iterator<Object> keyIt = cNode.getChildrenKeysIterator();
+         while (keyIt.hasNext()) {
+            WiseTreeElement child = (WiseTreeElement) cNode.getChild(keyIt.next());
+            TreeElement te = wiseDataTransfer(child);
+            te.setId(child.getId().toString());
+            treeElement.addChild(te);
+
+         }
+         treeElement.setClassType(treeElement.getCleanClassName(wte.getClassType().toString()));
+         lazyLoadMap.put(cNode.getClassType().toString(), cNode);
 
       } else if (treeElement instanceof EnumerationTreeElement) {
          EnumerationTreeElement eTreeElement = (EnumerationTreeElement)treeElement;
@@ -174,17 +191,6 @@ public class GWTClientConversationBean extends ClientConversationBean {
          if (wte instanceof SimpleWiseTreeElement) {
             ((SimpleTreeElement) treeElement).setValue(((SimpleWiseTreeElement) wte).getValue());
 
-         } else if (wte instanceof ComplexWiseTreeElement) {
-            ComplexWiseTreeElement cNode = (ComplexWiseTreeElement)wte;
-            Iterator<Object> keyIt = cNode.getChildrenKeysIterator();
-            while (keyIt.hasNext()) {
-               WiseTreeElement child = (WiseTreeElement) cNode.getChild(keyIt.next());
-               TreeElement te = genTreeElement(child);
-               te.setId(child.getId().toString());
-               treeElement.addChild(te);
-               //System.out.println("ComplexWiseTreeElement child name: " + child.getName()
-               //   + "  te name: " + te.getName() + "  te id: " + te.getId());
-            }
          }
          treeElement.setClassType(treeElement.getCleanClassName(wte.getClassType().toString()));
       }
@@ -198,13 +204,17 @@ public class GWTClientConversationBean extends ClientConversationBean {
    }
 
 
-
-   private TreeElement generateOutputTreeElementHierarchy(TreeNodeImpl tNode) {
+   /**
+    * Generate GWT objects from WISE response objects
+    * @param tNode
+    * @return
+    */
+   private TreeElement wiseOutputPostProcess(TreeNodeImpl tNode) {
 
       SimpleTreeElement treeElement = new SimpleTreeElement();
 
       if(tNode == null){
-         System.out.println("generateOutputTreeElementHierarchy tNode is NULL");
+         System.out.println("wiseOutputPostProcess tNode is NULL");
 
       } else {
          List<TreeElement> children = treeElement.getChildren();
@@ -212,14 +222,14 @@ public class GWTClientConversationBean extends ClientConversationBean {
          Iterator<Object> keyIt = tNode.getChildrenKeysIterator();
          while (keyIt.hasNext()) {
             WiseTreeElement child = (WiseTreeElement) tNode.getChild(keyIt.next());
-            TreeElement te = genOutputTreeElement(child);
+            TreeElement te = wiseOutputTransfer(child);
             children.add(te);
          }
       }
       return treeElement;
    }
 
-   private TreeElement genOutputTreeElement(WiseTreeElement wte) {
+   private TreeElement wiseOutputTransfer(WiseTreeElement wte) {
 
       TreeElement treeElement = TreeElementFactory.create(wte);
 
@@ -227,7 +237,7 @@ public class GWTClientConversationBean extends ClientConversationBean {
          GroupTreeElement gTreeElement = (GroupTreeElement)treeElement;
          WiseTreeElement protoType =  ((GroupWiseTreeElement) wte).getPrototype();
 
-         TreeElement pElement = genOutputTreeElement(protoType);
+         TreeElement pElement = wiseOutputTransfer(protoType);
          gTreeElement.setProtoType(pElement);
 
          String rType = gTreeElement.getCleanClassName(
@@ -247,6 +257,15 @@ public class GWTClientConversationBean extends ClientConversationBean {
             }
          }
 
+      } else if (wte instanceof ComplexWiseTreeElement) {
+         ComplexWiseTreeElement cNode = (ComplexWiseTreeElement) wte;
+         Iterator<Object> keyIt = cNode.getChildrenKeysIterator();
+         while (keyIt.hasNext()) {
+            WiseTreeElement child = (WiseTreeElement) cNode.getChild(keyIt.next());
+            TreeElement te = wiseOutputTransfer(child);
+            treeElement.addChild(te);
+         }
+
       } else if (treeElement instanceof EnumerationTreeElement) {
          EnumerationTreeElement eTreeElement = (EnumerationTreeElement)treeElement;
          Map<String, String> eValuesMap = ((EnumerationWiseTreeElement)wte).getValidValue();
@@ -260,16 +279,6 @@ public class GWTClientConversationBean extends ClientConversationBean {
          if (wte instanceof SimpleWiseTreeElement) {
             ((SimpleTreeElement) treeElement).setValue(((SimpleWiseTreeElement) wte).getValue());
 
-         } else if (wte instanceof ComplexWiseTreeElement) {
-            ComplexWiseTreeElement cNode = (ComplexWiseTreeElement)wte;
-            Iterator<Object> keyIt = cNode.getChildrenKeysIterator();
-            while (keyIt.hasNext()) {
-               WiseTreeElement child = (WiseTreeElement) cNode.getChild(keyIt.next());
-               TreeElement te = genOutputTreeElement(child);
-               treeElement.addChild(te);
-               //System.out.println("ComplexWiseTreeElement child name: " + child.getName()
-               //   + "  te name: " + te.getName());
-            }
          }
          treeElement.setClassType(treeElement.getCleanClassName(wte.getClassType().toString()));
 
@@ -283,186 +292,119 @@ public class GWTClientConversationBean extends ClientConversationBean {
       return treeElement;
    }
 
-
-   private String transferInputValues(TreeElement root) {
-      StringBuilder sb = new StringBuilder();
-      if (root == null) {
-         System.out.println("root is NULL");
-
-      } else {
-         /**
-         System.out.println("---");
-         System.out.println("root: arg name: " + root.getName()
-            + "  classType: " + root.getClassType()
-            + "  kind: " + root.getKind());
-
-         sb.append("---" + "\n");
-         sb.append("root: arg name: " + root.getName()
-            + "  classType: " + root.getClassType()
-            + "  kind: " + root.getKind() + "\n");
-         ***/
+   /**
+    * Transfer user input data from GWT objects to WISE objects
+    * @param root
+    */
+   private void userDataPostProcess (TreeElement root) {
+      if (root != null) {
          for(TreeElement te : root.getChildren()) {
-
             WiseTreeElement wte = treeElementMap.get(te.getId());
             if (wte == null) {
-               sb.append("wte is NULL\n");
+               // This should never happen
+               System.out.println("ERROR: not WiseTreeElement for TreeElement");
 
             } else {
-               /***
-               System.out.println("wte classname: " + wte.getClass().toString());
-               sb.append("wte classname: " + wte.getClass().toString() + "\n");
-               System.out.println("treeElement kind: " + te.getKind());
-               sb.append("treeElement kind: " + te.getKind() + "\n");
-               ***/
-               if (TreeElement.SIMPLE.equals(te.getKind())) {
-                  /***
-                  System.out.println("child: arg name: " + te.getName()
-                     + "  classType: " + te.getClassType()
-                     + "  kind: " + te.getKind());
-                  sb.append("child: arg name: " + te.getName()
-                     + "  classType: " + te.getClassType()
-                     + "  kind: " + te.getKind() + "\n");
-                   ***/
-                  ((SimpleWiseTreeElement)wte).setValue(((SimpleTreeElement)te).getValue());
-                  wte.setNil(false);
-                  //wte.setNillable(false);
-                  /***
-                  System.out.println("transferred value: " + ((SimpleWiseTreeElement)wte).getValue()
-                     + " Nil: " + wte.isNil() + "  Nillable: " + wte.isNillable());
-                  sb.append("transferred value: " + ((SimpleWiseTreeElement)wte).getValue()
-                     + " Nil: " + wte.isNil() + "  Nillable: " + wte.isNillable()
-                     + "\n");
-                  ***/
-               } else if (TreeElement.GROUP.equals(te.getKind())) {
-                  /***
-                  System.out.println("child: arg name: " + te.getName()
-                     + "  classType: " + te.getClassType()
-                     + "  rawType: " + ((GroupTreeElement) te).getProtoType().getClassType()
-                     + "  kind: " + te.getKind());
-                  sb.append("child: arg name: " + te.getName()
-                     + "  classType: " + te.getClassType()
-                     + "  rawType: " + ((GroupTreeElement) te).getProtoType().getClassType()
-                     + "  kind: " + te.getKind() + "\n");
-
-
-                  for (TreeElement s : ((GroupTreeElement) te).getValueList()) {
-                     System.out.println("value: " + ((SimpleTreeElement)s).getValue());
-                     sb.append("value: " + ((SimpleTreeElement)s).getValue() + "\n");
-                  }
-
-                  System.out.println("GroupWiseTreeElement Nil: " + wte.isNil()
-                     + "  Nillable: " + wte.isNillable());
-                  sb.append("GroupWiseTreeElement Nil: " + wte.isNil()
-                     + "  Nillable: " + wte.isNillable() + "\n");
-                   ***/
-
-                  // A separate key list is required to successfully remove child-key pairs.
-                  Iterator<Object> childKeyIt = wte.getChildrenKeysIterator();
-                  List<Object> keyList = new ArrayList<Object>();
-                  while (childKeyIt.hasNext()) {
-                     keyList.add(childKeyIt.next());
-                  }
-
-                  for(Object key : keyList) {
-                     Object value = wte.getChild(key);
-                     //System.out.println("rmChild key: " + key.toString() + "  value: " + value.getClass().getName());
-                     //sb.append("rmChild key: " + key.toString() + "  value: " + value.getClass().getName() + "\n");
-                     wte.removeChild(key);
-                  }
-
-                  for (TreeElement s : ((GroupTreeElement) te).getValueList()) {
-                     WiseTreeElement childWte = ((GroupWiseTreeElement) wte).incrementChildren();
-
-                     if (childWte instanceof  SimpleWiseTreeElement){
-                        ((SimpleWiseTreeElement)childWte).setValue(((SimpleTreeElement)s).getValue());
-                        childWte.setNil(false);
-                        //System.out.println("transferred value: " + ((SimpleTreeElement)s).getValue());
-                        //sb.append("transferred value: " + ((SimpleTreeElement)s).getValue() + "\n");
-                     }
-                  }
-
-                  //System.out.println("added: getChildrenKeysIterator size: " + ((GroupWiseTreeElement) wte).getSize());
-                  //sb.append("added: getChildrenKeysIterator size: " + ((GroupWiseTreeElement) wte).getSize() + "\n");
-
-               } else if (TreeElement.COMPLEX.equals(te.getKind())) {
-                  /***
-                  // debugging
-                  Iterator<Object> xchildKeyIt = wte.getChildrenKeysIterator();
-                  while (xchildKeyIt.hasNext()) {
-                     System.out.println("transferInputValues COMPLEX id: " + xchildKeyIt.next().toString());
-                  }
-                  ***/
-                  Iterator<Object> childKeyIt = wte.getChildrenKeysIterator();
-                  Map<String, Object> keyMap = new HashMap<String, Object>();
-                  while (childKeyIt.hasNext()) {
-                     Object obj = childKeyIt.next();
-                     keyMap.put(obj.toString(), obj);
-                  }
-
-                  // clear previous values
-                  childKeyIt = wte.getChildrenKeysIterator();
-                  while (childKeyIt.hasNext()) {
-                     SimpleWiseTreeElement value = (SimpleWiseTreeElement)wte.getChild(childKeyIt.next());
-                     value.setValue(null);
-                     value.setNil(true);
-                  }
-
-                  for (TreeElement teChild : te.getChildren()) {
-                     Object key = keyMap.get(teChild.getId());
-                     SimpleWiseTreeElement value = (SimpleWiseTreeElement)wte.getChild(key);
-                     value.setValue(((SimpleTreeElement) teChild).getValue());
-                     value.setNil(teChild.isNil());
-
-                     //System.out.println("transferInputValues COMPLEX transfered name: " + teChild.getName()
-                     //   + "  value: "  +((SimpleTreeElement) teChild).getValue() + "  id: " + teChild.getId());
-                  }
-
-                  if (!te.getChildren().isEmpty()) {
-                     wte.setNil(false);
-                  }
-
-               } else if (TreeElement.ENUMERATION.equals(te.getKind())) {
-                  /***
-                  System.out.println("Enum child: arg name: " + te.getName()
-                     + "  classType: " + te.getClassType()
-                     + "  kind: " + te.getKind());
-                  sb.append("Enum child: arg name: " + te.getName()
-                     + "  classType: " + te.getClassType()
-                     + "  kind: " + te.getKind()
-                     + "  value: " + ((EnumerationTreeElement)te).getValue() + "\n");
-
-                  for (String v : ((EnumerationTreeElement) te).getEnumValues()) {
-                     System.out.println("Enum child: value" + v);
-                     sb.append("Enum child: value" + v + "\n");
-                  }
-                  ***/
-                  ((EnumerationWiseTreeElement)wte).setValue(((EnumerationTreeElement)te).getValue());
-                  wte.setNil(te.isNil());
-                  /**
-                  System.out.println("EnumerationWiseTreeElement Nil: " + wte.isNil()
-                     + "  Nillable: " + wte.isNillable());
-                  sb.append("EnumerationWiseTreeElement Nil: " + wte.isNil()
-                     + "  Nillable: " + wte.isNillable() + "\n");
-                  **/
-
-               } else {
-                  System.out.println("UNKNOW Kind: child: arg name: " + te.getName()
-                     + "  classTypeAsString: " + te.getClassType()
-                     + "  kind: " + te.getKind());
-                  /***
-                  sb.append("UNKNOW Kind: child: arg name: " + te.getName()
-                     + "  classTypeAsString: " + te.getClassType()
-                     + "  kind: " + te.getKind() + "\n");
-                  ***/
-               }
-
+               userDataTransfer(te, wte);
             }
          }
       }
-      return sb.toString();
    }
 
 
+   private void userDataTransfer(TreeElement treeElement, WiseTreeElement wte) {
+
+      if (TreeElement.SIMPLE.equals(treeElement.getKind())) {
+
+         if (wte instanceof SimpleWiseTreeElement) {
+            ((SimpleWiseTreeElement) wte).setValue(((SimpleTreeElement) treeElement).getValue());
+            wte.setNil(false);
+
+         } else {
+            System.out.println("ERROR: incompatible types. TreeElement: " + treeElement.getKind()
+               + "  WiseTreeElement: " + wte.getClass().getName());
+         }
+
+      } else  if (treeElement instanceof ComplexTreeElement) {
+
+         if (wte instanceof ComplexWiseTreeElement) {
+            ComplexTreeElement cte = (ComplexTreeElement) treeElement;
+            ComplexWiseTreeElement cWise = (ComplexWiseTreeElement) wte;
+
+            Iterator<Object> childKeyIt = cWise.getChildrenKeysIterator();
+            // create structure for node lookup by variable name
+            HashMap<String, TreeNode> wiseChildren = new HashMap<String, TreeNode>();
+            while (childKeyIt.hasNext()) {
+               TreeNode tNode = cWise.getChild(childKeyIt.next());
+               wiseChildren.put(((WiseTreeElement)tNode).getName(), tNode);
+            }
+
+            int cnt = cte.getChildren().size();
+            if (cnt == wiseChildren.size()) {
+               for (int i = 0; i < cnt; i++) {
+                  TreeNode tNode = wiseChildren.get(cte.getChildren().get(i).getName());
+
+                  if (tNode != null) {
+                     userDataTransfer(cte.getChildren().get(i), (WiseTreeElement) tNode);
+                  } else {
+                     System.out.println("ERROR: No Wise treeNode found for name: " + cte.getChildren().get(i).getName());
+                  }
+               }
+
+            } else {
+               System.out.println("ERROR: incompatable child count: ComplexTreeElement cnt: "
+                  + cte.getChildren().size() + "  ComplexWiseTreeElement cnt: " + wiseChildren.size());
+            }
+
+         } else {
+            System.out.println("ERROR: incompatible types. TreeElement: " + treeElement.getKind()
+               + "  WiseTreeElement: " + wte.getClass().getName());
+         }
+
+      } else if (treeElement instanceof GroupTreeElement) {
+
+         if (wte instanceof GroupWiseTreeElement) {
+            GroupTreeElement cte = (GroupTreeElement)treeElement;
+            GroupWiseTreeElement cWise = (GroupWiseTreeElement)wte;
+
+            // replace deferred class with actual class.
+            if (cWise.getPrototype() instanceof LazyLoadWiseTreeElement) {
+               WiseTreeElement protoChildWte = lazyLoadMap.get(cWise.getPrototype().getClassType().toString());
+               WiseTreeElement clone = protoChildWte.clone();
+               cWise.setPrototype(clone);
+               String test="";  // debug
+            }
+
+            for(TreeElement child : cte.getValueList()) {
+               WiseTreeElement protoChildWte = cWise.incrementChildren();
+               userDataTransfer(child, protoChildWte);
+            }
+
+         } else {
+            System.out.println("ERROR: incompatible types. TreeElement: " + treeElement.getKind()
+               + "  WiseTreeElement: " + wte.getClass().getName());
+         }
+
+      } else if (treeElement instanceof EnumerationTreeElement) {
+         if (wte instanceof EnumerationWiseTreeElement) {
+
+            ((EnumerationWiseTreeElement) wte).setValue(((EnumerationTreeElement) treeElement).getValue());
+            wte.setNil(treeElement.isNil());
+
+         } else {
+            System.out.println("ERROR: incompatible types. TreeElement: " + treeElement.getKind()
+               + "  WiseTreeElement: " + wte.getClass().getName());
+         }
+
+      }
+   }
+
+
+   /**
+    * Debug only
+    * @param root
+    * @return
+    */
    private String dumpTree(TreeElement root) {
       StringBuilder sb = new StringBuilder();
       if (root == null) {
@@ -535,7 +477,10 @@ public class GWTClientConversationBean extends ClientConversationBean {
       return sb.toString();
    }
 
-
+   /**
+    * Debug only
+    * @return
+    */
    private String dumpOutputTree() {
       StringBuilder sb = new StringBuilder();
       TreeNodeImpl outputTree = getOutputTree();
@@ -563,10 +508,16 @@ public class GWTClientConversationBean extends ClientConversationBean {
                         + simpleChild.getValue() + "\n");
                   }
                }
-            } else {
+            } else if (child instanceof ComplexWiseTreeElement) {
+               System.out.println("dumpOutputTree: ComplexWiseTreeElement: not implemented");
+            } else if (child instanceof EnumerationWiseTreeElement) {
+               System.out.println("dumpOutputTree: EnumerationWiseTreeElement: not implemented");
+            } else if (child instanceof SimpleWiseTreeElement) {
 
                sb.append(child.getType() + " : " + child.getName() + " = "
                   + ((SimpleWiseTreeElement) child).getValue() + "\n");
+
+            } else {
 
             }
          }

@@ -26,7 +26,8 @@ public class WsdlFinder implements Serializable {
         "http://localhost:8080/jaxws-jbws1798/Service?wsdl",
         "http://localhost:8080/jaxws-jbws2259?wsdl",
         "http://localhost:8080/schemasInWeirdPlaceFromSrc/SayHiImpl?wsdl",
-        "http://localhost:8080/wise-test-datatypes?wsdl"
+        "http://localhost:8080/wise-test-datatypes?wsdl",
+        "http://localhost:8080/jaxws-complex/RegistrationService?wsdl"
     };
 
     public WsdlFinder() {

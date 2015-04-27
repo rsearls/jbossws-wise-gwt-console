@@ -30,7 +30,8 @@ public class InvocationView extends Composite implements InvocationPresenter.Dis
    public InvocationView() {
 
       DecoratorPanel contentDetailsDecorator = new DecoratorPanel();
-      contentDetailsDecorator.setWidth("48em");
+      contentDetailsDecorator.setWidth("100%");
+      contentDetailsDecorator.setWidth("640px");  //48em
       initWidget(contentDetailsDecorator);
 
       VerticalPanel contentDetailsPanel = new VerticalPanel();

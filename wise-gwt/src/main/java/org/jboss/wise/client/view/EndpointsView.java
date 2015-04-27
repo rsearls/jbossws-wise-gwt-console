@@ -32,7 +32,8 @@ public class EndpointsView extends Composite implements EndpointsPresenter.Displ
    public EndpointsView() {
 
       DecoratorPanel contentDetailsDecorator = new DecoratorPanel();
-      contentDetailsDecorator.setWidth("48em");
+      contentDetailsDecorator.setWidth("100%");
+      contentDetailsDecorator.setWidth("640px");  //48em
       initWidget(contentDetailsDecorator);
 
       VerticalPanel contentDetailsPanel = new VerticalPanel();

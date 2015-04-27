@@ -60,6 +60,7 @@ td.contacts-ListName {
   padding-bottom: 2px;
 }
 
+/* */
 .gwt-DecoratorPanel .middleCenter {
    height: 100%;
    width: 100%;
@@ -75,6 +76,20 @@ td.contacts-ListName {
     border-color: black;
 }
 
-.gwt-Button {
+.gwt-MyButton {
     background-color: blueviolet;
 }
+
+.gwt-readWSDL {
+    background-color: mediumaquamarine;
+}
+
+/* debugging only
+#my-button-id { font-size: 150%; }
+
+#base-panel {
+    background-color: mediumaquamarine;
+    border: solid;
+    border-color: black;
+}
+*/

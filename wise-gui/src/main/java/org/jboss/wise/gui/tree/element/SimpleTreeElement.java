@@ -31,6 +31,11 @@ public class SimpleTreeElement extends TreeElement implements Serializable {
       clone.setName(getName());
       clone.setClassType(getClassType());
       clone.setValue(getValue());
+
+      for (TreeElement child : getChildren()) {
+         clone.addChild(child.clone());
+      }
+
       return  clone;
    }
 }

@@ -2,6 +2,7 @@ package org.jboss.wise.client.view;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.HasClickHandlers;
+import com.google.gwt.user.client.DOM;
 import org.jboss.wise.client.presenter.WsdlPresenter;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CheckBox;
@@ -40,7 +41,8 @@ public class WsdlView extends Composite implements WsdlPresenter.Display {
       DecoratorPanel contentTableDecorator = new DecoratorPanel();
       initWidget(contentTableDecorator);
       contentTableDecorator.setWidth("100%");
-      contentTableDecorator.setWidth("38em");
+      contentTableDecorator.setWidth("640px");
+      DOM.setElementAttribute(contentTableDecorator.getElement(), "id", "base-panel");
 
       VerticalPanel contentDetailsPanel = new VerticalPanel();
       contentDetailsPanel.setWidth("100%");
@@ -61,7 +63,6 @@ public class WsdlView extends Composite implements WsdlPresenter.Display {
    private VerticalPanel createInputDetails() {
 
       VerticalPanel contentDetailsPanel = new VerticalPanel();
-      contentDetailsPanel.addStyleName("base-panel");
       contentDetailsPanel.setWidth("100%");
       detailsTable = new FlexTable();
       detailsTable.addStyleName("wsdl-table");
