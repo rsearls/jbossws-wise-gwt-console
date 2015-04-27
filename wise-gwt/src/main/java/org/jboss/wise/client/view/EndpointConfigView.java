@@ -123,29 +123,28 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
    public void setData(RequestResponse data) {
       msgInvocationResult = data;
       rootParamNode = data.getTreeElement();
-      generateInputDisplay();
+      generateDataDisplay();
    }
 
-   private void generateInputDisplay() {
+   private void generateDataDisplay() {
 
       debugStrBld = new StringBuilder();  // debug
 
       treeRoot = new Tree();
-      TreeItem parentItem = new TreeItem();
-      parentItem.setText("parentItem");
-      treeRoot.addItem(parentItem);
 
       for(TreeElement child : rootParamNode.getChildren()) {
-         genDisplayInput(parentItem, child);
+         TreeItem parentItem = generateDisplayObject(new TreeItem(), child);
+         parentItem.setState(true);
+         treeRoot.addItem(parentItem.getChild(0));
       }
-      parentItem.setState(true);
+
 
       baseVerticalPanel.insert(createFullnamePanel(), baseVerticalPanel.getWidgetCount() - widgetCountOffset);
       baseVerticalPanel.insert(treeRoot, baseVerticalPanel.getWidgetCount() - widgetCountOffset);
       //Window.alert(debugStrBld.toString());
    }
 
-   protected TreeItem genDisplayInput(TreeItem parentItem, TreeElement parentTreeElement) {
+   protected TreeItem generateDisplayObject(TreeItem parentItem, TreeElement parentTreeElement) {
 
       if (TreeElement.SIMPLE.equals(parentTreeElement.getKind())) {
          TreeItem treeItem = new TreeItem();
@@ -169,11 +168,11 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
          treeItem.addItem(hPanel);
          treeItem.setState(true);
 
-         treeItem.setText("COMPLEX: " + getBaseType(parentTreeElement.getClassType())
+         treeItem.setText(getBaseType(parentTreeElement.getClassType())
             + " : " + parentTreeElement.getName());
 
          for (TreeElement child : parentTreeElement.getChildren()) {
-            genDisplayInput(treeItem, child);
+            generateDisplayObject(treeItem, child);
          }
 
          parentItem.addItem(treeItem);
@@ -189,7 +188,7 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
 
          HorizontalPanel gPanel = new HorizontalPanel();
          Button addButton = new Button("add");
-         gPanel.add(new Label("GROUP: " + getBaseType(parentTreeElement.getClassType())
+         gPanel.add(new Label(getBaseType(parentTreeElement.getClassType())
             + "<" + getBaseType(gChild.getClassType()) + ">"
             + " : " + parentTreeElement.getName()));
          gPanel.add(addButton);
@@ -325,44 +324,43 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
       return new WsdlInfo(wsdlAddress.getValue(), user.getValue(), password.getValue());
    }
 
-   /***/
+   /**
+    * Debuggin only
+    * @param tElement
+    */
    private void dumpTree(TreeElement tElement) {
 
+      if (TreeElement.SIMPLE.equals(tElement.getKind())) {
+         debugStrBld.append("kind: " + tElement.getKind()
+            + "  name: " + tElement.getName()
+            + "  value: " + ((SimpleTreeElement) tElement).getValue() + "\n");
 
-      //for(TreeElement tElement : newRootParamNode.getChildren()) {
-
-         if(TreeElement.SIMPLE.equals(tElement.getKind())) {
-            debugStrBld.append("kind: " + tElement.getKind()
-               + "  name: " + tElement.getName()
-               + "  value: " + ((SimpleTreeElement)tElement).getValue() + "\n");
-
-         } else if(TreeElement.COMPLEX.equals(tElement.getKind())) {
-            debugStrBld.append("kind: " + tElement.getKind()
-               + "  name: " + tElement.getName()
-               + "  value: " + ((SimpleTreeElement)tElement).getValue() + "\n");
-            for (TreeElement tChild : tElement.getChildren()) {
-               dumpTree(tChild);
-            }
-
-         } if(TreeElement.GROUP.equals(tElement.getKind())) {
-            debugStrBld.append("kind: " + tElement.getKind()
-               + "  name: " + tElement.getName() + "\n");
-            //TreeElement protoElement = ((GroupTreeElement) tElement).getProtoType();
-            //debugStrBld.append("  proto kind: " + protoElement.getKind()
-            //   + "  name: " + tElement.getName() + "\n");
-
-            for(TreeElement tChild : ((GroupTreeElement) tElement).getValueList()) {
-               dumpTree(tChild);
-            }
-
-         } if(TreeElement.ENUMERATION.equals(tElement.getKind())) {
-            debugStrBld.append("kind: " + tElement.getKind()
-               + "  name: " + tElement.getName()
-               + "  value: " + ((EnumerationTreeElement)tElement).getValue() + "\n");
+      } else if (TreeElement.COMPLEX.equals(tElement.getKind())) {
+         debugStrBld.append("kind: " + tElement.getKind()
+            + "  name: " + tElement.getName()
+            + "  value: " + ((SimpleTreeElement) tElement).getValue() + "\n");
+         for (TreeElement tChild : tElement.getChildren()) {
+            dumpTree(tChild);
          }
-      //}
+
+      }
+      if (TreeElement.GROUP.equals(tElement.getKind())) {
+         debugStrBld.append("kind: " + tElement.getKind()
+            + "  name: " + tElement.getName() + "\n");
+
+         for (TreeElement tChild : ((GroupTreeElement) tElement).getValueList()) {
+            dumpTree(tChild);
+         }
+
+      }
+      if (TreeElement.ENUMERATION.equals(tElement.getKind())) {
+         debugStrBld.append("kind: " + tElement.getKind()
+            + "  name: " + tElement.getName()
+            + "  value: " + ((EnumerationTreeElement) tElement).getValue() + "\n");
+      }
+
    }
-  /****/
+
    /**
     *
     * @return
@@ -401,21 +399,19 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
          if (s != null && !s.isEmpty()) {
             pNode.setValue(s);
          }
-         debugStrBld.append("widget value: " + s + "  Node value: " + pNode.getValue() + "  name: " + pNode.getName() + "\n");
 
       } else if (widget instanceof IntegerBox) {
          Integer i = ((IntegerBox) widget).getValue();
          if (i != null) {
             pNode.setValue(i.toString());
          }
-         debugStrBld.append("widget value: " + i + "  Node value: " + pNode.getValue() + "  name: " + pNode.getName() + "\n");
 
       } else if (widget instanceof DoubleBox) {
          Double d = ((DoubleBox) widget).getValue();
          if (d != null) {
             pNode.setValue(d.toString());
          }
-         debugStrBld.append("widget value: " + d + "  Node value: " + pNode.getValue() + "  name: " + pNode.getName() + "\n");
+
       }
       return pNode;
    }
@@ -438,6 +434,8 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
 
          debugStrBld.append("protoType kind: " +parentTreeElement.getProtoType().getKind()+ "\n");
          debugStrBld.append("protoType classType: " +parentTreeElement.getProtoType().getClassType()+ "\n");
+
+         // replace the lazyLoad reference object with the real object
          TreeElement cloneChild = null;
          if (TreeElement.LAZY.equals(parentTreeElement.getProtoType().getKind())) {
             TreeElement gChild = lazyLoadMap.get(parentTreeElement.getProtoType().getClassType());
@@ -462,7 +460,7 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
             HorizontalPanel hPanel = new HorizontalPanel();
             grpTreeItem.setWidget(hPanel);
 
-            hPanel.add(new Label("xGroup: " + getBaseType(parentTreeElement.getClassType()) + " : "
+            hPanel.add(new Label(getBaseType(parentTreeElement.getClassType()) + " : "
                + parentTreeElement.getName()));
 
             Button rmButton = new Button("remove");
@@ -472,7 +470,7 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
             rmButton.addClickHandler(new RemoveParamerterizeBlockClickHandler(
                grpTreeItem, parentTreeElement, cloneChild));
 
-            endpointConfigView.genDisplayInput(grpTreeItem, cloneChild);
+            endpointConfigView.generateDisplayObject(grpTreeItem, cloneChild);
             grpTreeItem.setState(true);
          }
          //Window.alert(debugStrBld.toString());
@@ -493,10 +491,10 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
       }
 
       public void onClick(ClickEvent event) {
-
+         // remove generated object
          child.getValueList().remove(gChild);
 
-         // TODO remove treeItems from treeEndpointDataTable
+         // remove display widgets
          scrubTable(treeItem);
          TreeItem parent = treeItem.getParentItem();
          parent.removeItem(treeItem);
