@@ -367,6 +367,17 @@ public class GWTClientConversationBean extends ClientConversationBean {
             GroupTreeElement cte = (GroupTreeElement)treeElement;
             GroupWiseTreeElement cWise = (GroupWiseTreeElement)wte;
 
+            // Must use separate key list to void ConcurrentModificationException
+            Iterator<Object> keyIt = cWise.getChildrenKeysIterator();
+            List<Object> keyList = new ArrayList<Object>();
+            while (keyIt.hasNext()) {
+               keyList.add(keyIt.next());
+            }
+            // remove pre-existing protoType instances.
+            for (Object key : keyList) {
+               cWise.removeChild(key);
+            }
+
             // replace deferred class with actual class.
             if (cWise.getPrototype() instanceof LazyLoadWiseTreeElement) {
                WiseTreeElement protoChildWte = lazyLoadMap.get(cWise.getPrototype().getClassType().toString());

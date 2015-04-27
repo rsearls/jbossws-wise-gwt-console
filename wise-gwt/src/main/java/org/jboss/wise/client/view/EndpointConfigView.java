@@ -491,13 +491,22 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
       }
 
       public void onClick(ClickEvent event) {
+         //debugStrBld = new StringBuilder();
+         // debug
+         //debugStrBld.append("before remove: gChild id: " + gChild + "\n");
+         //dumpTable(child.getValueList());
          // remove generated object
          child.getValueList().remove(gChild);
+
+         //debugStrBld.append("after remove \n");
+         //dumpTable(child.getValueList());
 
          // remove display widgets
          scrubTable(treeItem);
          TreeItem parent = treeItem.getParentItem();
          parent.removeItem(treeItem);
+
+         //Window.alert(debugStrBld.toString());
       }
 
       private void scrubTable(TreeItem parentItem) {
@@ -512,5 +521,11 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
          }
       }
    }
-
+   /***
+   private void dumpTable(List<TreeElement> treeList) {
+      for(TreeElement child : treeList) {
+         debugStrBld.append("id: " + child + "  name: " + child.getName() + "\n");
+      }
+   }
+   ***/
 }
