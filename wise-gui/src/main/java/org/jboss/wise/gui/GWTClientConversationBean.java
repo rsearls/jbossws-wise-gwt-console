@@ -14,6 +14,7 @@ import org.jboss.wise.gui.model.TreeNodeImpl;
 import org.jboss.wise.gui.tree.element.ComplexTreeElement;
 import org.jboss.wise.gui.tree.element.EnumerationTreeElement;
 import org.jboss.wise.gui.tree.element.GroupTreeElement;
+import org.jboss.wise.gui.tree.element.ParameterizedTreeElement;
 import org.jboss.wise.gui.tree.element.RequestResponse;
 import org.jboss.wise.gui.tree.element.SimpleTreeElement;
 import org.jboss.wise.gui.tree.element.TreeElement;
@@ -22,8 +23,10 @@ import org.jboss.wise.gui.treeElement.ComplexWiseTreeElement;
 import org.jboss.wise.gui.treeElement.EnumerationWiseTreeElement;
 import org.jboss.wise.gui.treeElement.GroupWiseTreeElement;
 import org.jboss.wise.gui.treeElement.LazyLoadWiseTreeElement;
+import org.jboss.wise.gui.treeElement.ParameterizedWiseTreeElement;
 import org.jboss.wise.gui.treeElement.SimpleWiseTreeElement;
 import org.jboss.wise.gui.treeElement.WiseTreeElement;
+import org.jboss.wise.gui.treeElement.ParameterizedWiseTreeElement;
 
 /**
  * User: rsearls
@@ -178,6 +181,18 @@ public class GWTClientConversationBean extends ClientConversationBean {
          treeElement.setClassType(treeElement.getCleanClassName(wte.getClassType().toString()));
          lazyLoadMap.put(cNode.getClassType().toString(), cNode);
 
+      } else if (wte instanceof ParameterizedWiseTreeElement) {
+         ParameterizedWiseTreeElement cNode = (ParameterizedWiseTreeElement)wte;
+         Iterator<Object> keyIt = cNode.getChildrenKeysIterator();
+         while (keyIt.hasNext()) {
+            WiseTreeElement child = (WiseTreeElement) cNode.getChild(keyIt.next());
+            TreeElement te = wiseDataTransfer(child);
+            te.setId(child.getId().toString());
+            treeElement.addChild(te);
+
+         }
+         treeElement.setClassType(treeElement.getCleanClassName(wte.getClassType().toString()));
+
       } else if (treeElement instanceof EnumerationTreeElement) {
          EnumerationTreeElement eTreeElement = (EnumerationTreeElement)treeElement;
          Map<String, String> eValuesMap = ((EnumerationWiseTreeElement)wte).getValidValue();
@@ -237,8 +252,11 @@ public class GWTClientConversationBean extends ClientConversationBean {
          GroupTreeElement gTreeElement = (GroupTreeElement)treeElement;
          WiseTreeElement protoType =  ((GroupWiseTreeElement) wte).getPrototype();
 
-         TreeElement pElement = wiseOutputTransfer(protoType);
-         gTreeElement.setProtoType(pElement);
+         // test for characteristic of parameterizedType
+         if (protoType != null) {
+            TreeElement pElement = wiseOutputTransfer(protoType);
+            gTreeElement.setProtoType(pElement);
+         }
 
          String rType = gTreeElement.getCleanClassName(
             ((ParameterizedType)wte.getClassType()).getRawType().toString());
@@ -259,6 +277,15 @@ public class GWTClientConversationBean extends ClientConversationBean {
 
       } else if (wte instanceof ComplexWiseTreeElement) {
          ComplexWiseTreeElement cNode = (ComplexWiseTreeElement) wte;
+         Iterator<Object> keyIt = cNode.getChildrenKeysIterator();
+         while (keyIt.hasNext()) {
+            WiseTreeElement child = (WiseTreeElement) cNode.getChild(keyIt.next());
+            TreeElement te = wiseOutputTransfer(child);
+            treeElement.addChild(te);
+         }
+
+      } else if (wte instanceof ParameterizedWiseTreeElement) {
+         ParameterizedWiseTreeElement cNode = (ParameterizedWiseTreeElement) wte;
          Iterator<Object> keyIt = cNode.getChildrenKeysIterator();
          while (keyIt.hasNext()) {
             WiseTreeElement child = (WiseTreeElement) cNode.getChild(keyIt.next());
@@ -361,6 +388,42 @@ public class GWTClientConversationBean extends ClientConversationBean {
                + "  WiseTreeElement: " + wte.getClass().getName());
          }
 
+      } else if (treeElement instanceof ParameterizedTreeElement) {
+
+         if (wte instanceof ParameterizedWiseTreeElement) {
+            ParameterizedTreeElement cte = (ParameterizedTreeElement) treeElement;
+            ParameterizedWiseTreeElement cWise = (ParameterizedWiseTreeElement) wte;
+
+            Iterator<Object> childKeyIt = cWise.getChildrenKeysIterator();
+            // create structure for node lookup by variable name
+            HashMap<String, TreeNode> wiseChildren = new HashMap<String, TreeNode>();
+            while (childKeyIt.hasNext()) {
+               TreeNode tNode = cWise.getChild(childKeyIt.next());
+               wiseChildren.put(((WiseTreeElement)tNode).getName(), tNode);
+            }
+
+            int cnt = cte.getChildren().size();
+            if (cnt == wiseChildren.size()) {
+               for (int i = 0; i < cnt; i++) {
+                  TreeNode tNode = wiseChildren.get(cte.getChildren().get(i).getName());
+
+                  if (tNode != null) {
+                     userDataTransfer(cte.getChildren().get(i), (WiseTreeElement) tNode);
+                  } else {
+                     System.out.println("ERROR: No Wise treeNode found for name: " + cte.getChildren().get(i).getName());
+                  }
+               }
+
+            } else {
+               System.out.println("ERROR: incompatable child count: ParameterizedTreeElement cnt: "
+                  + cte.getChildren().size() + "  ParameterizedWiseTreeElement cnt: " + wiseChildren.size());
+            }
+
+         } else {
+            System.out.println("ERROR: incompatible types. TreeElement: " + treeElement.getKind()
+               + "  WiseTreeElement: " + wte.getClass().getName());
+         }
+
       } else if (treeElement instanceof GroupTreeElement) {
 
          if (wte instanceof GroupWiseTreeElement) {
@@ -383,7 +446,6 @@ public class GWTClientConversationBean extends ClientConversationBean {
                WiseTreeElement protoChildWte = lazyLoadMap.get(cWise.getPrototype().getClassType().toString());
                WiseTreeElement clone = protoChildWte.clone();
                cWise.setPrototype(clone);
-               String test="";  // debug
             }
 
             for(TreeElement child : cte.getValueList()) {
@@ -473,6 +535,8 @@ public class GWTClientConversationBean extends ClientConversationBean {
                   sb.append("Enum child: value" + v + "\n");
                }
 
+            } else if (TreeElement.PARAMETERIZED.equals(te.getKind())) {
+               System.out.println("tree dump not implemented for ParameterizedTreeElement");
 
             } else {
                System.out.println("UNKNOW Kind: child: arg name: " + te.getName()
@@ -521,6 +585,8 @@ public class GWTClientConversationBean extends ClientConversationBean {
                }
             } else if (child instanceof ComplexWiseTreeElement) {
                System.out.println("dumpOutputTree: ComplexWiseTreeElement: not implemented");
+            } else if (child instanceof ParameterizedWiseTreeElement) {
+               System.out.println("dumpOutputTree: ParameterizedWiseTreeElement: not implemented");
             } else if (child instanceof EnumerationWiseTreeElement) {
                System.out.println("dumpOutputTree: EnumerationWiseTreeElement: not implemented");
             } else if (child instanceof SimpleWiseTreeElement) {

@@ -14,6 +14,10 @@ public class GroupTreeElement extends TreeElement {
    private TreeElement protoType;
    private List<TreeElement> valueList = new ArrayList<TreeElement>();
 
+   public GroupTreeElement () {
+      kind = TreeElement.GROUP;
+   }
+
    public List<TreeElement> getValueList() {
 
       return valueList;

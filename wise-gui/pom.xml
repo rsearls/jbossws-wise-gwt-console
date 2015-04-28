@@ -154,6 +154,7 @@
                   <include>org/jboss/wise/gui/tree/element/ComplexTreeElement.java</include>
                   <include>org/jboss/wise/gui/tree/element/GroupTreeElement.java</include>
                   <include>org/jboss/wise/gui/tree/element/EnumerationTreeElement.java</include>
+                  <include>org/jboss/wise/gui/tree/element/ParameterizedTreeElement.java</include>
                   <include>org/jboss/wise/gui/tree/element/RequestResponse.java</include>
                </includes>
             </configuration>

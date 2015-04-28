@@ -11,6 +11,10 @@ public class EnumerationTreeElement extends SimpleTreeElement {
 
    private List<String> enumValues = new ArrayList<String>();
 
+   public EnumerationTreeElement () {
+      kind = TreeElement.ENUMERATION;
+   }
+
    public List<String> getEnumValues() {
 
       return enumValues;

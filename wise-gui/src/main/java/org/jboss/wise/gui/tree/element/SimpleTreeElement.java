@@ -9,6 +9,10 @@ import java.io.Serializable;
 public class SimpleTreeElement extends TreeElement implements Serializable {
    protected String value;
 
+   public SimpleTreeElement () {
+      kind = TreeElement.SIMPLE;
+   }
+
    public String getValue() {
 
       return value;

@@ -2,18 +2,18 @@ package org.jboss.wise.gui.tree.element;
 
 /**
  * User: rsearls
- * Date: 4/25/15
+ * Date: 4/27/15
  */
-public class ComplexTreeElement extends SimpleTreeElement {
+public class ParameterizedTreeElement extends SimpleTreeElement {
 
-   public ComplexTreeElement () {
-      kind = TreeElement.COMPLEX;
+   public ParameterizedTreeElement () {
+      kind = TreeElement.PARAMETERIZED;
    }
 
    @Override
    public TreeElement clone() {
 
-      ComplexTreeElement clone = new ComplexTreeElement();
+      ParameterizedTreeElement clone = new ParameterizedTreeElement();
       clone.setKind(getKind());
       clone.setName(getName());
       clone.setClassType(getClassType());
@@ -23,5 +23,6 @@ public class ComplexTreeElement extends SimpleTreeElement {
       }
 
       return clone;
+
    }
 }

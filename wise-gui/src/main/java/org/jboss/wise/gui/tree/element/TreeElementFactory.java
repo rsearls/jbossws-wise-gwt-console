@@ -24,6 +24,9 @@ public class TreeElementFactory {
       } else if (WiseTreeElement.ENUMERATION.equals(wte.getKind())) {
          treeElement = new EnumerationTreeElement();
 
+      } else if (WiseTreeElement.PARAMETERIZED.equals(wte.getKind())) {
+         treeElement = new ParameterizedTreeElement();
+
       } else {
          treeElement = new SimpleTreeElement();
       }

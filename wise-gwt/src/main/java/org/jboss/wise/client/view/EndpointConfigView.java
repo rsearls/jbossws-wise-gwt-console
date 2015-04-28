@@ -28,9 +28,11 @@ import org.jboss.wise.client.presenter.EndpointConfigPresenter;
 import org.jboss.wise.gui.tree.element.ComplexTreeElement;
 import org.jboss.wise.gui.tree.element.EnumerationTreeElement;
 import org.jboss.wise.gui.tree.element.GroupTreeElement;
+import org.jboss.wise.gui.tree.element.ParameterizedTreeElement;
 import org.jboss.wise.gui.tree.element.RequestResponse;
 import org.jboss.wise.gui.tree.element.SimpleTreeElement;
 import org.jboss.wise.gui.tree.element.TreeElement;
+import org.jboss.wise.gui.tree.element.ParameterizedTreeElement;
 import org.jboss.wise.shared.WsdlInfo;
 
 /**
@@ -180,6 +182,22 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
 
          debugStrBld.append("ADD Complex lazy: " + parentTreeElement.getClassType() + "\n");
          lazyLoadMap.put(parentTreeElement.getClassType(), parentTreeElement);
+
+      } else if (parentTreeElement instanceof ParameterizedTreeElement) {
+         TreeItem treeItem = new TreeItem();
+         HorizontalPanel hPanel = new HorizontalPanel();
+         treeItem.addItem(hPanel);
+         treeItem.setState(true);
+
+         treeItem.setText(getBaseType(parentTreeElement.getClassType())
+            + " : " + parentTreeElement.getName());
+
+         for (TreeElement child : parentTreeElement.getChildren()) {
+            generateDisplayObject(treeItem, child);
+         }
+
+         parentItem.addItem(treeItem);
+         debugStrBld.append("PARAMETERIZED: " + parentTreeElement.getName() + "\n");
 
       } else if (parentTreeElement instanceof GroupTreeElement) {
 
@@ -343,8 +361,15 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
             dumpTree(tChild);
          }
 
-      }
-      if (TreeElement.GROUP.equals(tElement.getKind())) {
+      } else if (TreeElement.PARAMETERIZED.equals(tElement.getKind())) {
+         debugStrBld.append("kind: " + tElement.getKind()
+            + "  name: " + tElement.getName()
+            + "  value: " + ((SimpleTreeElement) tElement).getValue() + "\n");
+         for (TreeElement tChild : tElement.getChildren()) {
+            dumpTree(tChild);
+         }
+
+      } else if (TreeElement.GROUP.equals(tElement.getKind())) {
          debugStrBld.append("kind: " + tElement.getKind()
             + "  name: " + tElement.getName() + "\n");
 
@@ -352,8 +377,7 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
             dumpTree(tChild);
          }
 
-      }
-      if (TreeElement.ENUMERATION.equals(tElement.getKind())) {
+      } else if (TreeElement.ENUMERATION.equals(tElement.getKind())) {
          debugStrBld.append("kind: " + tElement.getKind()
             + "  name: " + tElement.getName()
             + "  value: " + ((EnumerationTreeElement) tElement).getValue() + "\n");
