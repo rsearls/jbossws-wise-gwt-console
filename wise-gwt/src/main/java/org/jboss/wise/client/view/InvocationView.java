@@ -6,12 +6,15 @@ import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DecoratorPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Tree;
 import com.google.gwt.user.client.ui.TreeItem;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import org.jboss.wise.client.presenter.InvocationPresenter;
+import org.jboss.wise.gui.tree.element.ComplexTreeElement;
 import org.jboss.wise.gui.tree.element.GroupTreeElement;
+import org.jboss.wise.gui.tree.element.ParameterizedTreeElement;
 import org.jboss.wise.gui.tree.element.RequestResponse;
 import org.jboss.wise.gui.tree.element.SimpleTreeElement;
 import org.jboss.wise.gui.tree.element.TreeElement;
@@ -85,60 +88,91 @@ public class InvocationView extends Composite implements InvocationPresenter.Dis
    }
 
    public void setData(RequestResponse result) {
-
       responseMessage = result.getResponseMessage();
-      TreeElement root = result.getTreeElement();
-
-      if (root != null) {
-         TreeItem opNameItem = new TreeItem(
-            SafeHtmlUtils.fromString(result.getOperationFullName()));
-         rootNode.addItem(opNameItem);
-
-         for (TreeElement child : root.getChildren()) {
-            if (child instanceof GroupTreeElement) {
-               GroupTreeElement gChild = (GroupTreeElement) child;
-               TreeElement cte = gChild.getProtoType();
-
-               TreeItem resultItem = new TreeItem(
-                  SafeHtmlUtils.fromString(getBaseName(gChild.getClassType())
-                     + "[" + gChild.getValueList().size() + "]"));
-               opNameItem.addItem(resultItem);
-
-               for (TreeElement ste : gChild.getValueList()) {
-                  TreeItem detailItem = new TreeItem(
-                     SafeHtmlUtils.fromString(getBaseName(cte.getClassType()) + " : " + cte.getName() + " = "
-                        + ((SimpleTreeElement) ste).getValue()));
-                  resultItem.addItem(detailItem);
-               }
-               resultItem.setState(true);
-
-            } else {
-               TreeItem resultItem = new TreeItem(
-                  SafeHtmlUtils.fromString(getBaseName(child.getClassType()) + " : " + child.getName()
-                     + " = " + ((SimpleTreeElement) child).getValue()));
-               opNameItem.addItem(resultItem);
-            }
+      TreeElement rootParamNode = result.getTreeElement();
+      if (rootParamNode != null) {
+         for (TreeElement child : rootParamNode.getChildren()) {
+            TreeItem parentItem = generateDisplayObject(new TreeItem(), child);
+            parentItem.setState(true);
+            rootNode.addItem(parentItem.getChild(0));
          }
-         opNameItem.setState(true);
+      }
+   }
+
+
+   protected TreeItem generateDisplayObject(TreeItem parentItem, TreeElement parentTreeElement) {
+
+      if (TreeElement.SIMPLE.equals(parentTreeElement.getKind())) {
+         TreeItem treeItem = new TreeItem();
+         HorizontalPanel hPanel = new HorizontalPanel();
+         treeItem.setWidget(hPanel);
+         treeItem.setState(true);
+
+         Label label = new Label(getClassType(parentTreeElement) + parentTreeElement.getName() + " = "
+            + ((SimpleTreeElement)parentTreeElement).getValue());
+         hPanel.add(label);
+
+         parentItem.addItem(treeItem);
+
+      } else if (parentTreeElement instanceof ComplexTreeElement) {
+         TreeItem treeItem = new TreeItem();
+         HorizontalPanel hPanel = new HorizontalPanel();
+         treeItem.addItem(hPanel);
+         treeItem.setState(true);
+
+         treeItem.setText(getClassType(parentTreeElement) + parentTreeElement.getName());
+
+         for (TreeElement child : parentTreeElement.getChildren()) {
+            generateDisplayObject(treeItem, child);
+         }
+
+         parentItem.addItem(treeItem);
+
+      } else if (parentTreeElement instanceof ParameterizedTreeElement) {
+         TreeItem treeItem = new TreeItem();
+         HorizontalPanel hPanel = new HorizontalPanel();
+         treeItem.addItem(hPanel);
+         treeItem.setState(true);
+
+         treeItem.setText(getClassType(parentTreeElement) + parentTreeElement.getName());
+
+         for (TreeElement child : parentTreeElement.getChildren()) {
+            generateDisplayObject(treeItem, child);
+         }
+
+         parentItem.addItem(treeItem);
+
+      } else if (parentTreeElement instanceof GroupTreeElement) {
+
+         TreeItem treeItem = new TreeItem();
+         HorizontalPanel gPanel = new HorizontalPanel();
+         gPanel.add(new Label(getClassType(parentTreeElement)
+            + "<" + getClassType(parentTreeElement) + ">"
+            + " : " + parentTreeElement.getName()));
+         treeItem.setWidget(gPanel);
+
+         parentItem.addItem(treeItem);
+
       } else {
-         // display error
-         TreeItem opNameItem = new TreeItem(SafeHtmlUtils.fromString(result.getOperationFullName()));
-         rootNode.addItem(opNameItem);
+         TreeItem treeItem = new TreeItem();
+         HorizontalPanel hPanel = new HorizontalPanel();
+         treeItem.addItem(hPanel);
+         treeItem.setState(true);
 
-         TreeItem errorItem = new TreeItem(
-            SafeHtmlUtils.fromString(result.getErrorMessage()));
-         opNameItem.addItem(errorItem);
-         opNameItem.setState(true);
+         treeItem.setText("UNKNOWN: " + getClassType(parentTreeElement) + parentTreeElement.getName());
+         parentItem.addItem(treeItem);
       }
+
+      return parentItem;
    }
 
-   private String getBaseName(String name) {
-
-      String basename = name;
-      int indx = name.lastIndexOf(".");
-      if (indx > -1) {
-         basename = name.substring(indx + 1);
+   private String getClassType(TreeElement parentTreeElement) {
+      String classTypeStr = "";
+      if (parentTreeElement.getClassType() != null) {
+         classTypeStr = EndpointConfigView.getBaseType(parentTreeElement.getClassType())
+            + " : ";
       }
-      return basename;
+      return classTypeStr;
    }
+
 }

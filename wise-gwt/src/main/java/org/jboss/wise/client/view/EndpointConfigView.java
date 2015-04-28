@@ -328,7 +328,7 @@ public class EndpointConfigView extends Composite implements EndpointConfigPrese
    }
 
 
-   private String getBaseType(String src) {
+   public static String getBaseType(String src) {
 
       int indx = src.lastIndexOf(".");
       String t = src;
