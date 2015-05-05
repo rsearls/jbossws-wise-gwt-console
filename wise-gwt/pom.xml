@@ -69,8 +69,8 @@
 
       <!-- rls dmr api -->
       <dependency>
-         <groupId>org.jboss.as</groupId>
-         <artifactId>jboss-as-controller-client</artifactId>
+         <groupId>org.wildfly.core</groupId>
+         <artifactId>wildfly-controller-client</artifactId>
       </dependency>
 
       <dependency>

@@ -76,7 +76,7 @@
       <maven.compiler.target>1.6</maven.compiler.target>
       <maven.compiler.source>1.6</maven.compiler.source>
       <gwtVersion>2.5.0</gwtVersion>
-      <jboss-as-controller-client-version>7.1.1.Final</jboss-as-controller-client-version>
+      <jboss-as-controller-client-version>1.0.0.CR1</jboss-as-controller-client-version>
       <version.org.jboss.spec.jboss.javaee.6.0>3.0.0.Final</version.org.jboss.spec.jboss.javaee.6.0>
       <javax.validation.version>1.0.0.GA</javax.validation.version>
       <jboss.logging.version>3.1.0.GA</jboss.logging.version>
@@ -167,8 +167,8 @@
 
          <!-- rls dmr api -->
          <dependency>
-            <groupId>org.jboss.as</groupId>
-            <artifactId>jboss-as-controller-client</artifactId>
+            <groupId>org.wildfly.core</groupId>
+            <artifactId>wildfly-controller-client</artifactId>
             <version>${jboss-as-controller-client-version}</version>
          </dependency>
 
