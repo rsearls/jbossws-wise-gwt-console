@@ -61,6 +61,21 @@ td.contacts-ListName {
 }
 
 /* */
+#wise-banner {
+    max-width: 100%;
+    height: auto;
+    width: auto\9; /* ie8 */
+    border-color: black;
+    border-width: thick;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    width: auto\9; /* ie8 */
+}
+
+
 .gwt-DecoratorPanel .middleCenter {
    height: 100%;
    width: 100%;

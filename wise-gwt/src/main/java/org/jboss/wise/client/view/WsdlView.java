@@ -41,7 +41,7 @@ public class WsdlView extends Composite implements WsdlPresenter.Display {
       DecoratorPanel contentTableDecorator = new DecoratorPanel();
       initWidget(contentTableDecorator);
       contentTableDecorator.setWidth("100%");
-      contentTableDecorator.setWidth("640px");
+      //contentTableDecorator.setWidth("640px");
       DOM.setElementAttribute(contentTableDecorator.getElement(), "id", "base-panel");
 
       VerticalPanel contentDetailsPanel = new VerticalPanel();
