@@ -4,7 +4,6 @@
    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-   <!-- POM file generated with GWT webAppCreator -->
    <modelVersion>4.0.0</modelVersion>
    <groupId>org.jboss.wise</groupId>
    <artifactId>wise-gwt</artifactId>
@@ -27,7 +26,7 @@
       <webappDirectory>${project.build.directory}/${project.build.finalName}</webappDirectory>
       <version.org.jboss.spec.jboss.javaee.6.0>3.0.0.Final</version.org.jboss.spec.jboss.javaee.6.0>
    </properties>
-       <!-- -->
+
    <dependencies>
       <dependency>
          <groupId>com.google.gwt</groupId>
@@ -44,49 +43,20 @@
          <artifactId>junit</artifactId>
       <scope>test</scope>
    </dependency>
-   <dependency>
-      <groupId>javax.validation</groupId>
-      <artifactId>validation-api</artifactId>
-   </dependency>
-   <dependency>
-      <groupId>javax.validation</groupId>
-      <artifactId>validation-api</artifactId>
-   </dependency>
-
-   <!-- wise related archives -->
-      <dependency>
-         <groupId>org.jboss.spec</groupId>
-         <artifactId>jboss-javaee-6.0</artifactId>
-         <version>${version.org.jboss.spec.jboss.javaee.6.0}</version>
-         <type>pom</type>
-         <scope>import</scope>
-      </dependency>
 
       <dependency>
          <groupId>org.jboss.wise</groupId>
          <artifactId>wise-core-cxf</artifactId>
       </dependency>
 
-      <!-- rls dmr api -->
       <dependency>
          <groupId>org.wildfly.core</groupId>
          <artifactId>wildfly-controller-client</artifactId>
       </dependency>
 
       <dependency>
-         <groupId>javax.enterprise</groupId>
-         <artifactId>cdi-api</artifactId>
-      </dependency>
-
-      <dependency>
          <groupId>org.jboss.wise.gui</groupId>
          <artifactId>wise-gui</artifactId>
-      </dependency>
-
-      <dependency>
-         <groupId>org.apache.cxf</groupId>
-         <artifactId>cxf-tools-wsdlto-core</artifactId>
-         <scope>provided</scope>
       </dependency>
 
       <dependency>
@@ -119,7 +89,8 @@
             <!-- Plugin configuration. There are many available options, see
               gwt-maven-plugin documentation at codehaus.org -->
             <configuration>
-               <runTarget>Contacts.html</runTarget>
+               <module>org.jboss.wise.Wise</module>
+               <runTarget>Main.html</runTarget>
                <hostedWebapp>${webappDirectory}</hostedWebapp>
             </configuration>
          </plugin>

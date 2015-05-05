@@ -54,25 +54,19 @@
    </issueManagement>
 
    <modules>
+      <module>wise-core-cxf</module>
       <module>wise-gui</module>
       <module>wise-gwt</module>
    </modules>
 
    <properties>
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-      <!-- JBoss dependency versions -->
       <version.org.jboss.as.plugins.maven.plugin>7.3.Final</version.org.jboss.as.plugins.maven.plugin>
       <version.org.wildfly.plugins.maven.plugin>1.0.2.Final</version.org.wildfly.plugins.maven.plugin>
       <version.org.jboss.spec.jboss.javaee.6.0>3.0.0.Final</version.org.jboss.spec.jboss.javaee.6.0>
-
       <version.org.richfaces>4.5.2.Final</version.org.richfaces>
       <version.wise.core>2.1.0-SNAPSHOT</version.wise.core>
-
-      <!-- other plugin versions -->
       <version.compiler.plugin>2.3.1</version.compiler.plugin>
-
-      <!-- maven-compiler-plugin -->
       <maven.compiler.target>1.6</maven.compiler.target>
       <maven.compiler.source>1.6</maven.compiler.source>
       <gwtVersion>2.5.0</gwtVersion>
@@ -85,6 +79,8 @@
       <wise.gwtGui.sources.version>1.0</wise.gwtGui.sources.version>
       <cxf.tools.version>3.0.4</cxf.tools.version>
       <wise.gui.version>2.1-SNAPSHOT</wise.gui.version>
+      <jbossws.cxf.client.version>4.1.1.Final</jbossws.cxf.client.version>
+      <jcip.annotations.version>1.0</jcip.annotations.version>
    </properties>
 
    <dependencyManagement>
@@ -94,15 +90,20 @@
             <groupId>org.jboss.spec</groupId>
             <artifactId>jboss-javaee-6.0</artifactId>
             <version>${version.org.jboss.spec.jboss.javaee.6.0}</version>
-            <!-- -->
             <type>pom</type>
             <scope>import</scope>
-
          </dependency>
+
          <dependency>
             <groupId>org.richfaces</groupId>
             <artifactId>richfaces</artifactId>
             <version>${version.org.richfaces}</version>
+         </dependency>
+
+         <dependency>
+            <groupId>org.jboss.wise</groupId>
+            <artifactId>wise-core</artifactId>
+            <version>${version.wise.core}</version>
          </dependency>
 
          <dependency>
@@ -165,7 +166,64 @@
             </exclusions>
          </dependency>
 
-         <!-- rls dmr api -->
+         <dependency>
+            <groupId>org.jboss.ws.cxf</groupId>
+            <artifactId>jbossws-cxf-client</artifactId>
+            <version>${jbossws.cxf.client.version}</version>
+            <exclusions>
+               <exclusion>
+                  <groupId>org.apache.cxf</groupId>
+                  <artifactId>cxf-rt-ws-rm</artifactId>
+               </exclusion>
+               <exclusion>
+                  <groupId>org.apache.cxf</groupId>
+                  <artifactId>cxf-rt-management</artifactId>
+               </exclusion>
+               <exclusion>
+                  <groupId>org.apache.cxf</groupId>
+                  <artifactId>cxf-tools-java2ws</artifactId>
+               </exclusion>
+               <exclusion>
+                  <groupId>org.codehaus.woodstox</groupId>
+                  <artifactId>woodstox-core-asl</artifactId>
+               </exclusion>
+               <exclusion>
+                  <groupId>com.sun.xml.fastinfoset</groupId>
+                  <artifactId>FastInfoset</artifactId>
+               </exclusion>
+               <exclusion>
+                  <groupId>org.jboss.ws.cxf</groupId>
+                  <artifactId>jbossws-cxf-transports-httpserver</artifactId>
+               </exclusion>
+               <exclusion>
+                  <groupId>gnu-getopt</groupId>
+                  <artifactId>getopt</artifactId>
+               </exclusion>
+               <exclusion>
+                  <groupId>org.apache.cxf</groupId>
+                  <artifactId>cxf-rt-transports-jms</artifactId>
+               </exclusion>
+               <exclusion>
+                  <groupId>org.apache.cxf</groupId>
+                  <artifactId>cxf-rt-ws-security</artifactId>
+               </exclusion>
+               <exclusion>
+                  <groupId>org.apache.santuario</groupId>
+                  <artifactId>xmlsec</artifactId>
+               </exclusion>
+               <exclusion>
+                  <groupId>org.jboss.spec.javax.xml.rpc</groupId>
+                  <artifactId>jboss-jaxrpc-api_1.1_spec</artifactId>
+               </exclusion>
+            </exclusions>
+         </dependency>
+
+         <dependency>
+            <groupId>net.jcip</groupId>
+            <artifactId>jcip-annotations</artifactId>
+            <version>${jcip.annotations.version}</version>
+         </dependency>
+
          <dependency>
             <groupId>org.wildfly.core</groupId>
             <artifactId>wildfly-controller-client</artifactId>
@@ -184,16 +242,6 @@
             <version>${gwtVersion}</version>
             <scope>provided</scope>
          </dependency>
-         <dependency>
-            <groupId>javax.validation</groupId>
-            <artifactId>validation-api</artifactId>
-            <version>${javax.validation.version}</version>
-         </dependency>
-         <dependency>
-            <groupId>javax.validation</groupId>
-            <artifactId>validation-api</artifactId>
-            <version>${javax.validation.version}</version>
-         </dependency>
 
          <dependency>
             <groupId>org.jboss.logging</groupId>
@@ -211,21 +259,11 @@
             <artifactId>wise-gui</artifactId>
             <version>${wise.gui.version}</version>
          </dependency>
-         <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-tools-wsdlto-core</artifactId>
-            <version>${cxf.tools.version}</version>
-         </dependency>
+
          <dependency>
             <artifactId>wise-gui</artifactId>
             <groupId>wise-gwtGui-sources</groupId>
             <version>${wise.gwtGui.sources.version}</version>
-         </dependency>
-
-         <dependency>
-            <groupId>javax.enterprise</groupId>
-            <artifactId>cdi-api</artifactId>
-            <version>${cdi.api.version}</version>
          </dependency>
 
       </dependencies>

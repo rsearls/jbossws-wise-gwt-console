@@ -22,13 +22,13 @@
 	<url>http://www.jboss.org/wise</url>
 
 	<packaging>jar</packaging>
-
-	<parent>
-		<groupId>org.jboss.wise</groupId>
-		<artifactId>wise</artifactId>
-		<version>2.1.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
-	</parent>
+  
+   <parent>
+      <groupId>org.jboss.wise</groupId>
+      <artifactId>wise-parent</artifactId>
+      <version>1.0.0</version>
+      <relativePath>../pom.xml</relativePath>
+   </parent>
 
 	<dependencies>
 		<dependency>
@@ -40,61 +40,13 @@
  		<dependency>
 			<groupId>org.jboss.wise</groupId>
 			<artifactId>wise-core</artifactId>
-			<version>2.1.0-SNAPSHOT</version>
-<!-- rls
-			<version>${project.version}</version>
--->
 		</dependency>
 
  		<dependency>
 			<groupId>org.jboss.ws.cxf</groupId>
 			<artifactId>jbossws-cxf-client</artifactId>
 		</dependency>
-		
-		<dependency>
-			<groupId>org.apache.cxf</groupId>
-			<artifactId>cxf-rt-transports-http-jetty</artifactId>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.cxf</groupId>
-			<artifactId>cxf-rt-frontend-jaxrs</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.apache.abdera</groupId>
-					<artifactId>abdera-core</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.abdera</groupId>
-					<artifactId>abdera-parser</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.abdera</groupId>
-					<artifactId>abdera-extensions-json</artifactId>
-				</exclusion>
-			</exclusions>
-			<scope>test</scope>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.apache.cxf</groupId>
-			<artifactId>cxf-testutils</artifactId>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-all</artifactId>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.hamcrest</groupId>
-			<artifactId>hamcrest-all</artifactId>
-			<scope>test</scope>
-		</dependency>
-
+    
 		<dependency>
 			<groupId>net.jcip</groupId>
 			<artifactId>jcip-annotations</artifactId>
@@ -134,19 +86,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<configuration>
-					<systemProperties>
-						<property>
-							<name>log4j.configuration</name>
-							<value>test-log4j.xml</value>
-						</property>
-					</systemProperties>
-				</configuration>
-			</plugin>
 		</plugins>
-
 	</build>
 
 

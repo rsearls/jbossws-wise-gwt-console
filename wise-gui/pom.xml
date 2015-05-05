@@ -57,29 +57,23 @@
          <artifactId>cdi-api</artifactId>
       </dependency>
 
-      <!-- Import the Common Annotations API (JSR-250), we use provided scope as the API is included in JBoss AS 7 -->
-      <dependency>
-         <groupId>org.jboss.spec.javax.annotation</groupId>
-         <artifactId>jboss-annotations-api_1.1_spec</artifactId>
-      </dependency>
-
       <!-- Import the JSF API, we use provided scope as the API is included in JBoss AS 7 -->
       <dependency>
          <groupId>org.jboss.spec.javax.faces</groupId>
          <artifactId>jboss-jsf-api_2.1_spec</artifactId>
       </dependency>
 
-      <dependency>
-         <groupId>org.jboss.spec.javax.ejb</groupId>
-         <artifactId>jboss-ejb-api_3.1_spec</artifactId>
-      </dependency>
+        <dependency>
+           <groupId>org.jboss.spec.javax.ejb</groupId>
+           <artifactId>jboss-ejb-api_3.1_spec</artifactId>
+        </dependency>
 
-      <dependency>
-         <groupId>org.richfaces</groupId>
-         <artifactId>richfaces</artifactId>
-      </dependency>
+        <dependency>
+           <groupId>org.richfaces</groupId>
+           <artifactId>richfaces</artifactId>
+        </dependency>
 
-      <!-- TODO replace with org.jboss.wise:wise-core -->
+
       <dependency>
          <groupId>org.jboss.wise</groupId>
          <artifactId>wise-core-cxf</artifactId>
@@ -91,7 +85,6 @@
          <scope>provided</scope>
       </dependency>
 
-      <!-- rls dmr api -->
       <dependency>
          <groupId>org.wildfly.core</groupId>
          <artifactId>wildfly-controller-client</artifactId>
