@@ -20,8 +20,8 @@ import java.util.List;
  * User: rsearls
  * Date: 2/18/15
  */
-//@ManagedBean
-//@ConversationScoped
+@ManagedBean
+@ConversationScoped
 public class WsdlFinder implements Serializable {
 
    private List<String> wsdlList;
@@ -114,6 +114,7 @@ public class WsdlFinder implements Serializable {
 
       List<ModelNode> resultList = new ArrayList<ModelNode>();
       try {
+
          client = ModelControllerClient.Factory.create(InetAddress.getByName("127.0.0.1"), 9990);
          final ModelNode response = client.execute(new OperationBuilder(request).build());
 

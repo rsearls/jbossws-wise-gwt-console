@@ -29,20 +29,19 @@ public class MainServiceImpl extends RemoteServiceServlet implements
 
    public MainServiceImpl() {
 
-      initAddress();
       gwtClientConversationBean = new GWTClientConversationBean();
+      initAddress();
    }
 
    private void initAddress() {
-      // For debugging use only
-      WsdlFinder wsdlFinder = new WsdlFinder();
-      List<String> wsdlList = wsdlFinder.getWsdlList();
+      List<String> wsdlList = gwtClientConversationBean.getWsdlList();
       for (int i = 0; i < wsdlList.size(); ++i) {
          WsdlAddress detail = new WsdlAddress(String.valueOf(i), wsdlList.get(i));
          wsdlAddress.add(detail);
          address.put(detail.getId(), detail);
       }
    }
+
 
    public ArrayList<WsdlAddress> getAddressDetails() {
 

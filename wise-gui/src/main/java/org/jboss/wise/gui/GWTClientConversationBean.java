@@ -34,10 +34,9 @@ import org.jboss.wise.gui.treeElement.ParameterizedWiseTreeElement;
  */
 public class GWTClientConversationBean extends ClientConversationBean {
 
-   private Map<String, WiseTreeElement> treeElementMap =
-      new HashMap<String, WiseTreeElement>();
-
+   private Map<String, WiseTreeElement> treeElementMap = new HashMap<String, WiseTreeElement>();
    private HashMap<String, WiseTreeElement> lazyLoadMap = new HashMap<String, WiseTreeElement>();
+   private WsdlFinder wsdlFinder = null;
 
 
    @Override
@@ -46,7 +45,8 @@ public class GWTClientConversationBean extends ClientConversationBean {
       cleanup();
 
       try {
-         System.out.println("--## wsdlUrl: " + getWsdlUrl());
+
+         //System.out.println("--## wsdlUrl: " + getWsdlUrl());
          WSDynamicClientBuilder builder = new ReflectionBasedWSDynamicClientBuilder()
             .verbose(true).messageStream(ps).keepSource(true).excludeNonSOAPPorts(true)
             .maxThreadPoolSize(1);
@@ -472,6 +472,16 @@ public class GWTClientConversationBean extends ClientConversationBean {
       }
    }
 
+   /**
+    * check of deployed wsdls on the server.
+    * @return
+    */
+   public List<String> getWsdlList () {
+      if (wsdlFinder == null) {
+         wsdlFinder = new WsdlFinder();
+      }
+      return wsdlFinder.getWsdlList();
+   }
 
    /**
     * Debug only
