@@ -238,13 +238,13 @@
             </configuration>
          </plugin>
 
-        <!--JBoss AS deploy/undeploy utility
+        <!--JBoss AS deploy/undeploy utility -->
          <plugin>
             <groupId>org.jboss.as.plugins</groupId>
             <artifactId>jboss-as-maven-plugin</artifactId>
             <version>7.7.Final</version>
          </plugin>
-         -->
+         
          <!--WildFly deploy/undeploy utility -->
          <plugin>
             <groupId>org.wildfly.plugins</groupId>
