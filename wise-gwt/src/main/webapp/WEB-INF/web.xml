@@ -7,7 +7,7 @@
   
   <servlet>
     <servlet-name>mainServiceServlet</servlet-name>
-    <servlet-class>org.jboss.wise.server.MainServiceImpl</servlet-class>
+    <servlet-class>org.jboss.wise.gwt.server.MainServiceImpl</servlet-class>
   </servlet>
   
   <servlet-mapping>

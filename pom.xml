@@ -54,8 +54,10 @@
    </issueManagement>
 
    <modules>
+<!-- rls
       <module>wise-core-cxf</module>
       <module>wise-gui</module>
+-->
       <module>wise-gwt</module>
    </modules>
 
